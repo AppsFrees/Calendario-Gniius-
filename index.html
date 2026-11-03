@@ -63,7 +63,7 @@
 
     <div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
       <div id="syncStatusBadge" class="px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Conectando nube...
+        <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Conectando nube Firebase...
       </div>
       <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
         ⚙️ Configurar Días
@@ -187,7 +187,7 @@
     let seleccion = null;
     let diaActivoConfig = "5";
 
-    // Firebase Initialization (following mandatory rules)
+    // Firebase Initialization (fully automated cloud backend)
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'gniius-default-app';
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
     
@@ -258,11 +258,11 @@
 
         const badge = document.getElementById('syncStatusBadge');
         badge.className = "px-3.5 py-2 rounded-2xl bg-[#D6F0E0] text-[#2D8A5A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Sincronizada`;
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Firebase Sincronizada`;
 
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
         
-        // Real-time listener
+        // Real-time listener across all devices/browsers
         onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -281,7 +281,7 @@
         console.error("Auth/Firestore connection error:", e);
         const badge = document.getElementById('syncStatusBadge');
         badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Error de conexión`;
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Error de conexión Firebase`;
         render();
       }
     }
@@ -412,7 +412,7 @@
       guardarEnNube();
       cerrarNino();
       render();
-      mostrarToast('¡Reserva registrada con éxito en la nube! 🦕', 'success');
+      mostrarToast('¡Reserva registrada con éxito en la nube de Firebase! 🦕', 'success');
     }
 
     window.eliminarNino = function(key, idx) {
