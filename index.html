@@ -42,36 +42,6 @@
     </div>
   </div>
 
-  <!-- Cloud Sync Status Modal -->
-  <div id="modalSync" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-2 border-[#EAE6FF] z-50 hidden">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-black text-[#6A6AA8]">☁️ Sincronización en la Nube</h3>
-      <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarSync()">✕</button>
-    </div>
-    <p class="text-sm text-[#8A8AAB] mb-4 font-medium leading-relaxed">
-      Para que los datos se guarden y sincronicen entre diferentes celulares usando GitHub, conectaremos la app a una <b>GitHub Gist</b> gratuita.
-    </p>
-    
-    <div class="space-y-4">
-      <div>
-        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">GitHub Personal Access Token (PAT)</label>
-        <input id="syncToken" type="password" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-        <span class="text-xs text-[#8A8AAB] mt-1 block">Necesita permisos de lectura/escritura en Gists.</span>
-      </div>
-      <div>
-        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">ID del Gist (opcional)</label>
-        <input id="syncGistId" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Déjalo vacío para crear uno nuevo automáticamente">
-      </div>
-    </div>
-
-    <div class="flex justify-end gap-3.5 mt-8">
-      <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarSync()">Cancelar</button>
-      <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black text-base transition shadow-md flex items-center gap-2" onclick="guardarConfigSync()">
-        💾 Guardar y Conectar
-      </button>
-    </div>
-  </div>
-
   <!-- Top Bar -->
   <header class="bg-white/90 backdrop-blur-md px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-5 shadow-[0_4px_20px_rgba(184,184,218,0.15)] sticky top-0 z-40 border-b border-[#F0F0FF]">
     <div class="flex items-center gap-4">
@@ -92,9 +62,9 @@
     </div>
 
     <div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
-      <button class="px-4 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirSync()">
-        ☁️ Sincronizar GitHub
-      </button>
+      <div id="syncStatusBadge" class="px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Conectando nube...
+      </div>
       <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
         ⚙️ Configurar Días
       </button>
@@ -187,10 +157,14 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
     const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     
-    let cfg = JSON.parse(localStorage.getItem('cfg_gniiUS_v3') || 'null') || {
+    let defaultConfig = {
       dias: {
         "5": [
           { id: 1, nombre: "Grupo 1 - 0 a 12 meses", hora: "09:00", max: 5 },
@@ -207,13 +181,25 @@
       }
     };
     
-    let citas = JSON.parse(localStorage.getItem('citas_gniiUS_v3') || '{}');
+    let cfg = JSON.parse(JSON.stringify(defaultConfig));
+    let citas = {};
     let semanaBase = new Date();
     let seleccion = null;
-    let diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
+    let diaActivoConfig = "5";
+    let isCloudSynced = false;
 
-    // GitHub Gist sync credentials stored locally
-    let syncCreds = JSON.parse(localStorage.getItem('gniiUS_sync_creds') || '{}');
+    // Firebase Initialization (following mandatory rules)
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'gniius-default-app';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    
+    let app, db, auth;
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+    } catch (e) {
+      console.error("Firebase init error:", e);
+    }
 
     function mostrarToast(mensaje, tipo = 'info') {
       const container = document.getElementById('toastContainer');
@@ -249,109 +235,63 @@
       newCancel.onclick = () => { overlay.classList.add('hidden'); callback(false); };
     }
 
-    function abrirSync() {
-      document.getElementById('syncToken').value = syncCreds.token || '';
-      document.getElementById('syncGistId').value = syncCreds.gistId || '';
-      document.getElementById('modalSync').classList.remove('hidden');
-      document.getElementById('overlay').classList.remove('hidden');
-    }
-
-    function cerrarSync() {
-      document.getElementById('modalSync').classList.add('hidden');
-      document.getElementById('overlay').classList.add('hidden');
-    }
-
-    async function guardarConfigSync() {
-      let token = document.getElementById('syncToken').value.trim();
-      let gistId = document.getElementById('syncGistId').value.trim();
-      if (!token) {
-        mostrarToast('Ingresa tu Token de GitHub.', 'error');
-        return;
-      }
-      syncCreds = { token, gistId };
-      localStorage.setItem('gniiUS_sync_creds', JSON.stringify(syncCreds));
-      cerrarSync();
-      mostrarToast('Credenciales guardadas. Sincronizando...', 'info');
-      await sincronizarConGitHub(true);
-    }
-
-    async function sincronizarConGitHub(forzarSubida = false) {
-      if (!syncCreds.token) return;
+    async function guardarEnNube() {
+      if (!auth || !auth.currentUser) return;
       try {
-        let headers = {
-          'Authorization': `token ${syncCreds.token}`,
-          'Accept': 'application/vnd.github.v3+json'
-        };
-
-        if (!syncCreds.gistId && forzarSubida) {
-          // Crear un Gist nuevo
-          let res = await fetch('https://api.github.com/gists', {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({
-              description: "GniiUS Centro Psicologico Database",
-              public: false,
-              files: {
-                "gniius_data.json": {
-                  content: JSON.stringify({ cfg, citas }, null, 2)
-                }
-              }
-            })
-          });
-          let data = await res.json();
-          if (data.id) {
-            syncCreds.gistId = data.id;
-            localStorage.setItem('gniiUS_sync_creds', JSON.stringify(syncCreds));
-            mostrarToast('¡Gist creado y sincronizado en la nube!', 'success');
-          }
-          return;
-        }
-
-        if (syncCreds.gistId) {
-          let res = await fetch(`https://api.github.com/gists/${syncCreds.gistId}`, { headers });
-          let gist = await res.json();
-          if (gist.files && gist.files['gniius_data.json']) {
-            let remoteData = JSON.parse(gist.files['gniius_data.json'].content);
-            if (!forzarSubida) {
-              cfg = remoteData.cfg || cfg;
-              citas = remoteData.citas || citas;
-              localStorage.setItem('cfg_gniiUS_v3', JSON.stringify(cfg));
-              localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
-              render();
-            }
-          }
-
-          if (forzarSubida) {
-            await fetch(`https://api.github.com/gists/${syncCreds.gistId}`, {
-              method: 'PATCH',
-              headers: headers,
-              body: JSON.stringify({
-                files: {
-                  "gniius_data.json": {
-                    content: JSON.stringify({ cfg, citas }, null, 2)
-                  }
-                }
-              })
-            });
-            mostrarToast('Datos sincronizados con éxito en GitHub.', 'success');
-          }
-        }
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
+        await setDoc(docRef, { cfg, citas, updatedAt: new Date().toISOString() });
       } catch (e) {
-        console.error(e);
-        if (forzarSubida) mostrarToast('Error al sincronizar con GitHub.', 'error');
+        console.error("Error guardando en Firestore:", e);
+        mostrarToast('Error al guardar en la nube de Firebase', 'error');
       }
     }
 
-    function guardarDatosLocalesYNube() {
-      localStorage.setItem('cfg_gniiUS_v3', JSON.stringify(cfg));
-      localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
-      sincronizarConGitHub(true);
+    async function initFirebaseAndData() {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const badge = document.getElementById('syncStatusBadge');
+        badge.className = "px-3.5 py-2 rounded-2xl bg-[#D6F0E0] text-[#2D8A5A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Sincronizada`;
+
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
+        
+        // Real-time listener
+        onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.cfg) cfg = data.cfg;
+            if (data.citas) citas = data.citas;
+            render();
+          } else {
+            // First time initialization in firestore
+            guardarEnNube();
+            render();
+          }
+        }, (error) => {
+          console.error("Snapshot error:", error);
+        });
+
+      } catch (e) {
+        console.error("Auth/Firestore connection error:", e);
+        const badge = document.getElementById('syncStatusBadge');
+        badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Error de conexión`;
+        render();
+      }
     }
 
     function formatearFecha(d) { return d.toISOString().split('T')[0]; }
-    function cambiarSemana(dir) { semanaBase.setDate(semanaBase.getDate() + dir * 7); render(); }
-    function irHoy() { semanaBase = new Date(); render(); }
-    function cerrarTodo() { cerrarConfig(); cerrarNino(); cerrarSync(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
+    window.cambiarSemana = function(dir) { semanaBase.setDate(semanaBase.getDate() + dir * 7); render(); }
+    window.irHoy = function() { semanaBase = new Date(); render(); }
+    window.cerrarTodo = function() { cerrarConfig(); cerrarNino(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
 
     function render() {
       let inicioSem = new Date(semanaBase);
@@ -435,7 +375,7 @@
       }
     }
 
-    function abrirNino(key, titulo) {
+    window.abrirNino = function(key, titulo) {
       seleccion = key;
       document.getElementById('tituloModalNino').innerText = 'Reservar: ' + titulo;
       document.getElementById('modalNino').classList.remove('hidden');
@@ -443,7 +383,7 @@
       document.getElementById('nombreNino').focus();
     }
 
-    function cerrarNino() {
+    window.cerrarNino = function() {
       document.getElementById('modalNino').classList.add('hidden');
       document.getElementById('overlay').classList.add('hidden');
       document.getElementById('nombreNino').value = '';
@@ -451,7 +391,7 @@
       seleccion = null;
     }
 
-    function confirmarNino() {
+    window.confirmarNino = function() {
       let nombre = document.getElementById('nombreNino').value.trim();
       let tel = document.getElementById('telNino').value.trim();
       if (!nombre) {
@@ -471,31 +411,31 @@
       }
 
       citas[seleccion].push({ nombre, tel: tel || 'Sin teléfono' });
-      guardarDatosLocalesYNube();
+      guardarEnNube();
       cerrarNino();
       render();
-      mostrarToast('¡Reserva registrada con éxito! 🦕', 'success');
+      mostrarToast('¡Reserva registrada con éxito en la nube! 🦕', 'success');
     }
 
-    function eliminarNino(key, idx) {
+    window.eliminarNino = function(key, idx) {
       mostrarConfirmacion('Liberar Cupo', '¿Estás seguro de liberar este cupo?', (aceptado) => {
         if (aceptado) {
           citas[key].splice(idx, 1);
-          guardarDatosLocalesYNube();
+          guardarEnNube();
           render();
           mostrarToast('Cupo liberado correctamente.', 'success');
         }
       });
     }
 
-    function abrirConfig() {
+    window.abrirConfig = function() {
       if (!cfg.dias[diaActivoConfig]) diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
       renderTabs();
       document.getElementById('modalConfig').classList.remove('hidden');
       document.getElementById('overlay').classList.remove('hidden');
     }
 
-    function editarDiaRapido(diaNum) { diaActivoConfig = diaNum; abrirConfig(); }
+    window.editarDiaRapido = function(diaNum) { diaActivoConfig = diaNum; abrirConfig(); }
 
     function renderTabs() {
       let tabs = document.getElementById('tabsDias');
@@ -553,20 +493,20 @@
       panel.innerHTML = html;
     }
 
-    function addGrupoDia(diaNum) { cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 }); renderTabs(); }
-    function borrarGrupoDia(diaNum, i) {
+    window.addGrupoDia = function(diaNum) { cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 }); renderTabs(); }
+    window.borrarGrupoDia = function(diaNum, i) {
       if (cfg.dias[diaNum].length <= 1) { mostrarToast('Debe haber al menos un grupo.', 'error'); return; }
       cfg.dias[diaNum].splice(i, 1);
       renderTabs();
     }
-    function agregarDia() {
+    window.agregarDia = function() {
       let nuevo = document.getElementById('nuevoDiaSelect').value;
       if (cfg.dias[nuevo]) { mostrarToast('El día ya está configurado.', 'error'); return; }
       cfg.dias[nuevo] = [{ id: Date.now(), nombre: `Grupo ${NOMBRES_DIA[nuevo]}`, hora: "09:00", max: 5 }];
       diaActivoConfig = nuevo;
       renderTabs();
     }
-    function borrarDia(diaNum) {
+    window.borrarDia = function(diaNum) {
       if (Object.keys(cfg.dias).length <= 1) { mostrarToast('Debe mantener al menos un día.', 'error'); return; }
       mostrarConfirmacion('Eliminar Día', '¿Estás seguro de eliminar este día?', (aceptado) => {
         if (aceptado) {
@@ -577,8 +517,8 @@
       });
     }
 
-    function cerrarConfig() { document.getElementById('modalConfig').classList.add('hidden'); document.getElementById('overlay').classList.add('hidden'); }
-    function guardarTodo() {
+    window.cerrarConfig = function() { document.getElementById('modalConfig').classList.add('hidden'); document.getElementById('overlay').classList.add('hidden'); }
+    window.guardarTodo = function() {
       Object.keys(cfg.dias).forEach(diaNum => {
         cfg.dias[diaNum].forEach((g, i) => {
           let nom = document.getElementById(`gNom-${diaNum}-${i}`);
@@ -591,16 +531,13 @@
           }
         });
       });
-      guardarDatosLocalesYNube();
+      guardarEnNube();
       cerrarConfig();
       render();
     }
 
-    window.onload = async function() {
-      render();
-      if (syncCreds.token) {
-        await sincronizarConGitHub(false);
-      }
+    window.onload = function() {
+      initFirebaseAndData();
     };
   </script>
 </body>
