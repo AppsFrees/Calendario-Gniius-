@@ -186,7 +186,6 @@
     let semanaBase = new Date();
     let seleccion = null;
     let diaActivoConfig = "5";
-    let isCloudSynced = false;
 
     // Firebase Initialization (following mandatory rules)
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'gniius-default-app';
@@ -271,7 +270,6 @@
             if (data.citas) citas = data.citas;
             render();
           } else {
-            // First time initialization in firestore
             guardarEnNube();
             render();
           }
