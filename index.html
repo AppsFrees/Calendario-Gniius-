@@ -1,522 +1,528 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GniiUS - Calendario Psicológico</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#b8b8da">
+<title>GniiUS | Calendario de sesiones</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root {
---lila: #B8B8DA;
---rosa: #F9A8A8;
---amarillo: #FCD58E;
---menta: #A8D5BA;
---menta2: #8BC9B3;
---bg: #FBFAFF;
-}
-body {
-background-color: var(--bg);
-font-family: 'Inter', system-ui, sans-serif;
-color: #4A4A5A;
-}
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #F0F0FF; }
-::-webkit-scrollbar-thumb { background: #B8B8DA; border-radius: 9999px; }
+:root{--lila:#b8b8da;--rosa:#f9a8a8;--amarillo:#fcd58e;--menta:#a8d5ba;--bg:#fbfaff}
+body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:#4a4a5a}
+button:disabled{opacity:.5;cursor:not-allowed}
+.modal{max-height:90vh;overflow:auto}
 </style>
 </head>
-<body class="min-h-screen flex flex-col relative selection:bg-[#B8B8DA] selection:text-white text-base">
-​<!-- Toast Notification Box -->
-<div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-md pointer-events-none"></div>
-​<!-- Custom Confirm Modal -->
-<div id="modalConfirmOverlay" class="fixed inset-0 bg-[#4A4A5A]/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-<div class="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full border border-[#EDEAFB]">
-<h3 id="confirmTitle" class="text-xl font-extrabold text-[#6A6AA8] mb-3">Confirmación</h3>
-<p id="confirmMessage" class="text-base text-[#5A5A6A] mb-8 leading-relaxed">¿Estás seguro de realizar esta acción?</p>
-<div class="flex justify-end gap-3.5">
-<button id="confirmCancelBtn" class="px-5 py-3 rounded-2xl bg-[#EDEAFB] text-[#6A6AA8] font-bold text-base hover:bg-[#D8D4F5] transition">Cancelar</button>
-<button id="confirmOkBtn" class="px-5 py-3 rounded-2xl bg-[#F9A8A8] text-white font-bold text-base hover:bg-[#F69696] transition shadow-md">Aceptar</button>
-</div>
-</div>
-</div>
-​<!-- Firebase Setup Modal -->
-<div id="modalFirebaseSetup" class="fixed inset-0 bg-[#4A4A5A]/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-<div class="bg-white rounded-3xl p-7 md:p-8 shadow-2xl max-w-lg w-full border-2 border-[#EAE6FF] max-h-[90vh] overflow-y-auto">
-<div class="flex justify-between items-center mb-4">
-<h3 class="text-xl font-black text-[#6A6AA8] flex items-center gap-2">🔥 Configurar Firebase</h3>
-<button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarFirebaseSetup()">✕</button>
-</div>
-<p class="text-sm text-[#8A8AAB] mb-4 font-medium leading-relaxed">
-Pega tu objeto de configuración de Firebase (copiado de la consola de Firebase en Configuración de Proyecto > General > SDK de Firebase).
-</p>
-<div class="space-y-4">
-<div>
-<label class="block text-xs font-extrabold text-[#6A6AA8] mb-1">Objeto JSON de Firebase</label>
-<textarea id="inputFirebaseConfigJson" rows="6" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] font-mono text-xs text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" placeholder='{
-"apiKey": "AIzaSy...",
-"authDomain": "tu-proyecto.firebaseapp.com",
-"projectId": "tu-proyecto",
-"storageBucket": "tu-proyecto.appspot.com",
-"messagingSenderId": "123456...",
-"appId": "1:123456..."
-}'></textarea>
-</div>
-</div>
-<div class="flex justify-between items-center mt-6">
-<button class="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-extrabold text-xs hover:bg-red-200 transition" onclick="borrarFirebaseConfig()">Desconectar / Borrar</button>
-<div class="flex gap-3">
-<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="cerrarFirebaseSetup()">Cancelar</button>
-<button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black text-sm transition shadow-md" onclick="guardarFirebaseConfigManual()">Guardar y Conectar</button>
-</div>
-</div>
-</div>
-</div>
-​<!-- Top Bar -->
-<header class="bg-white/90 backdrop-blur-md px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-5 shadow-[0_4px_20px_rgba(184,184,218,0.15)] sticky top-0 z-40 border-b border-[#F0F0FF]">
-<div class="flex items-center gap-4">
-<div class="w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#B8B8DA] to-[#F9A8A8] flex items-center justify-center shadow-lg text-white font-black text-2xl">
-G
-</div>
-<div>
-<h1 class="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-<span style="color:#B8B8DA">Gn</span><span style="color:#F9A8A8">ii</span><span style="color:#FCD58E">i</span><span style="color:#A8D5BA">u</span><span style="color:#7EC8B8">s</span>
-<span class="text-sm md:text-base font-semibold text-[#8A8AAB] block md:inline md:ml-2">Centro Psicológico</span>
-</h1>
-<div class="text-xs md:text-sm text-[#8A8AAB] font-bold tracking-wide mt-1 flex gap-3">
-<span class="flex items-center gap-1">● Comprender</span>
-<span class="flex items-center gap-1">● Acompañar</span>
-<span class="flex items-center gap-1">● Potenciar</span>
-</div>
-</div>
-</div>
-​<div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
-<div id="syncStatusBadge" onclick="abrirFirebaseSetup()" class="px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition" title="Haz clic para configurar Firebase">
-<span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Configurar Firebase
-</div>
-<button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
-⚙️ Configurar Días
-</button>
-<div class="flex items-center bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-1.5 gap-1.5 shadow-inner">
-<button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(-1)" title="Semana Anterior">←</button>
-<button class="px-4 py-2 text-sm font-extrabold text-[#6A6AA8] hover:bg-[#EDEAFB] rounded-xl transition" onclick="irHoy()">Hoy</button>
-<button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(1)" title="Semana Siguiente">→</button>
-</div>
-</div>
+
+<body class="min-h-screen">
+
+<header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-purple-100 shadow-sm">
+ <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex flex-wrap items-center gap-4 justify-between">
+  <div class="flex items-center gap-3">
+   <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#b8b8da] to-[#f9a8a8] text-white grid place-items-center text-2xl font-black">G</div>
+   <div>
+    <h1 class="text-2xl font-black">
+     <span class="text-[#b8b8da]">Gn</span><span class="text-[#f9a8a8]">ii</span><span class="text-[#fcd58e]">i</span><span class="text-[#a8d5ba]">u</span><span class="text-[#7ec8b8]">s</span>
+    </h1>
+    <p class="text-xs text-slate-500 font-semibold">Centro Psicológico · Comprender · Acompañar · Potenciar</p>
+   </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2 items-center">
+   <span id="syncBadge" class="text-xs font-bold rounded-xl px-3 py-2 bg-amber-100 text-amber-800">● Solo en este dispositivo</span>
+   <button id="firebaseBtn" class="px-3 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">Firebase</button>
+   <button id="configBtn" class="px-3 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">⚙️ Configurar días</button>
+   <div class="flex items-center gap-1 bg-slate-50 rounded-xl p-1">
+    <button id="prevWeek" class="w-9 h-9 rounded-lg bg-[#b8b8da] text-white font-bold">←</button>
+    <button id="todayBtn" class="px-3 py-2 rounded-lg text-sm font-bold text-purple-800">Hoy</button>
+    <button id="nextWeek" class="w-9 h-9 rounded-lg bg-[#b8b8da] text-white font-bold">→</button>
+   </div>
+  </div>
+ </div>
 </header>
-​<!-- Main Content Area -->
-<main class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
-<!-- Notice Banner for Firebase Setup if not connected -->
-<div id="firebaseNoticeBanner" class="bg-[#FFF8E8] border-2 border-[#FCD58E] rounded-3xl p-5 mb-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hidden">
-<div class="flex items-center gap-3">
-<span class="text-3xl">💡</span>
-<div>
-<h4 class="font-black text-[#8A6A00] text-base">Conéctate a la Nube con Firebase</h4>
-<p class="text-xs md:text-sm text-[#8A6A00]/80 font-medium">Actualmente estás usando almacenamiento local. Configura Firebase para sincronizar tus reservas en tiempo real en todos tus dispositivos.</p>
-</div>
-</div>
-<button class="px-5 py-2.5 rounded-2xl bg-[#FCD58E] hover:bg-[#F9C570] text-[#6A4A00] font-black text-sm transition shrink-0 shadow-sm" onclick="abrirFirebaseSetup()">Configurar Ahora</button>
-</div>
-​<!-- Week Header Card & Legend -->
-<div class="bg-gradient-to-r from-[#FBFAFF] via-[#F4F2FF] to-[#ECE8FF] border-2 border-[#EAE6FF] rounded-3xl p-6 md:p-7 mb-8 shadow-[0_6px_25px_rgba(184,184,218,0.18)] flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
-<div>
-<span class="text-xs md:text-sm font-extrabold uppercase tracking-widest text-[#8A8AAB] block mb-1.5">📅 Semana Activa en Curso</span>
-<h3 id="tituloSemana" class="text-xl md:text-2xl font-black text-[#6A6AA8]">Cargando calendario...</h3>
-</div>
-<div class="flex items-center gap-3 flex-wrap">
-<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#D6F0E0] text-[#2D8A5A] shadow-sm">
-<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> Libre
-</div>
-<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFF0C0] text-[#8A6A00] shadow-sm">
-<span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00]"></span> Casi lleno
-</div>
-<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFD0D0] text-[#9A2A2A] shadow-sm">
-<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Lleno
-</div>
-</div>
-</div>
-​<!-- Days Grid -->
-<div id="contenedorDias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"></div>
+
+<main class="max-w-7xl mx-auto p-4 md:p-8">
+
+ <section id="devicePanel" class="hidden max-w-2xl mx-auto bg-white border border-purple-100 rounded-3xl p-6 shadow-sm mb-6">
+  <h2 class="text-xl font-black text-purple-800 mb-2">Autorizar este dispositivo</h2>
+  <p class="text-sm text-slate-600 mb-3">GniiUS entra sin correo ni contraseña. Para proteger la información, la primera vez debes autorizar este dispositivo desde Firebase Console.</p>
+  <p class="text-xs font-bold text-slate-500 mb-1">Identificador técnico de este dispositivo</p>
+  <code id="deviceUid" class="block break-all rounded-xl bg-slate-50 border p-3 text-xs"></code>
+  <button id="copyUidBtn" class="mt-3 px-4 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">Copiar identificador</button>
+  <p id="deviceStatus" class="text-sm text-amber-800 mt-3">Esperando autorización del administrador.</p>
+ </section>
+
+ <div id="cloudNotice" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-6 text-sm text-amber-900">
+  <b>Modo local:</b> los cambios se guardan en este navegador. Al conectar Firebase y autorizar este dispositivo, se compartirán con los demás dispositivos autorizados.
+ </div>
+
+ <div class="rounded-3xl p-5 md:p-7 mb-7 bg-gradient-to-r from-[#fbfaff] to-[#ece8ff] border border-purple-100 flex flex-wrap justify-between items-center gap-4">
+  <div>
+   <p class="text-xs uppercase tracking-widest font-extrabold text-slate-500">Semana seleccionada</p>
+   <h2 id="weekTitle" class="text-xl md:text-2xl font-black text-purple-800">Cargando…</h2>
+  </div>
+  <div class="flex gap-2 flex-wrap text-xs font-black">
+   <span class="rounded-full px-3 py-2 bg-green-100 text-green-800">● Libre</span>
+   <span class="rounded-full px-3 py-2 bg-amber-100 text-amber-800">● Último cupo</span>
+   <span class="rounded-full px-3 py-2 bg-red-100 text-red-800">● Lleno</span>
+  </div>
+ </div>
+
+ <div id="daysGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
 </main>
-​<div class="fixed right-[-20px] bottom-[-20px] w-56 opacity-[0.06] pointer-events-none select-none z-0 text-[10rem]">🦕</div>
-​<!-- Universal Backdrop Overlay -->
-<div id="overlay" class="fixed inset-0 bg-[#4A4A5A]/40 backdrop-blur-sm z-40 hidden" onclick="cerrarTodo()"></div>
-​<!-- Configuration Modal -->
-<div id="modalConfig" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-2xl bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-2 border-[#EAE6FF] z-50 hidden max-h-[90vh] flex flex-col">
-<div class="flex justify-between items-center mb-5 border-b-2 border-[#EDEAFB] pb-4">
-<h3 class="text-xl md:text-2xl font-black text-[#6A6AA8] flex items-center gap-2.5">🦕 Configuración de Grupos GniiUS</h3>
-<button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarConfig()">✕</button>
-</div>
-​<div id="tabsDias" class="flex gap-2.5 overflow-x-auto pb-3 mb-5 scrollbar-none"></div>
-<div id="panelDia" class="flex-1 overflow-y-auto pr-2 space-y-4 mb-5"></div>
-​<div class="pt-5 border-t-2 border-[#EDEAFB] flex flex-wrap items-center justify-between gap-4">
-<div class="flex items-center gap-3">
-<select id="nuevoDiaSelect" class="px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] text-base font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]">
-<option value="0">Domingo</option><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option>
-</select>
-<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition shadow-xs" onclick="agregarDia()">+ Añadir día</button>
-</div>
-<div class="flex gap-3">
-<button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-extrabold text-base transition shadow-md" onclick="guardarTodo()">Guardar Cambios</button>
-<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarConfig()">Cerrar</button>
-</div>
-</div>
-</div>
-​<!-- Reservation Modal -->
-<div id="modalNino" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-t-8 border-[#A8D5BA] z-50 hidden">
-<div class="flex justify-between items-center mb-4">
-<h3 id="tituloModalNino" class="text-xl font-black text-[#6A6AA8]">Reserva de Cupo</h3>
-<button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarNino()">✕</button>
-</div>
-<p class="text-sm text-[#8A8AAB] mb-5 font-medium leading-relaxed">Ingresa los datos del niño(a) y del responsable para asignar el cupo en el grupo seleccionado.</p>
-​<div class="space-y-4">
-<div>
-<label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Nombre del Niño / Niña</label>
-<input id="nombreNino" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. Mateo Pérez">
-</div>
-<div>
-<label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Teléfono / WhatsApp Papá o Mamá</label>
-<input id="telNino" type="tel" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. +51 987 654 321">
-</div>
-</div>
-​<div class="flex justify-end gap-3.5 mt-8">
-<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarNino()">Cancelar</button>
-<button class="px-6 py-3 rounded-2xl bg-[#A8D5BA] hover:bg-[#96C5A9] text-white font-black text-base transition shadow-md flex items-center gap-2" onclick="confirmarNino()">
-🦕 Reservar Cupo
-</button>
-</div>
-</div>
-​<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-​const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-​let defaultConfig = {
-dias: {
-"5": [
-{ id: 1, nombre: "Grupo 1 - 0 a 12 meses", hora: "09:00", max: 5 },
-{ id: 2, nombre: "Grupo 2 - 1 a 2 años", hora: "11:00", max: 5 },
-{ id: 3, nombre: "Grupo 3 - 2 a 3 años", hora: "15:30", max: 5 },
-{ id: 4, nombre: "Grupo 4 - 3 a 4 años", hora: "17:00", max: 5 }
-],
-"6": [
-{ id: 11, nombre: "Grupo 1 Sábado Mañana", hora: "09:30", max: 5 },
-{ id: 12, nombre: "Grupo 2 Sábado Media", hora: "11:30", max: 5 },
-{ id: 13, nombre: "Grupo 3 Sábado Tarde", hora: "15:00", max: 5 },
-{ id: 14, nombre: "Grupo 4 Sábado Tarde Noche", hora: "16:30", max: 5 }
-]
-}
+
+<div id="backdrop" class="hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm"></div>
+
+<section id="firebaseModal" class="hidden modal fixed z-50 inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-xl bg-white rounded-3xl p-6 shadow-2xl">
+ <div class="flex justify-between items-center mb-3">
+  <h2 class="text-xl font-black text-purple-800">Conectar Firebase</h2>
+  <button data-close class="text-xl font-bold">✕</button>
+ </div>
+ <p class="text-sm text-slate-500 mb-3">Pega aquí el objeto de configuración de tu aplicación web de Firebase. No pegues contraseñas ni claves privadas.</p>
+ <textarea id="firebaseConfig" rows="8" spellcheck="false" class="w-full border-2 border-purple-100 rounded-xl p-3 font-mono text-xs" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","appId":"..."}'></textarea>
+ <div class="flex flex-wrap justify-between gap-2 mt-4">
+  <button id="clearFirebase" class="text-red-600 font-bold text-sm">Quitar configuración</button>
+  <div class="flex gap-2">
+   <button data-close class="px-4 py-2 rounded-xl bg-slate-100 font-bold">Cancelar</button>
+   <button id="saveFirebase" class="px-4 py-2 rounded-xl bg-[#b8b8da] text-white font-bold">Guardar y conectar</button>
+  </div>
+ </div>
+ <p class="text-xs text-slate-500 mt-3">Proyecto configurado: <b>gniius-calendario</b>. El acceso será automático y sin contraseña; cada dispositivo deberá ser autorizado una sola vez.</p>
+</section>
+
+<section id="bookingModal" class="hidden modal fixed z-50 inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-md bg-white rounded-3xl p-6 shadow-2xl border-t-8 border-[#a8d5ba]">
+ <div class="flex justify-between items-center mb-2">
+  <h2 class="text-xl font-black text-purple-800">Reservar cupo</h2>
+  <button data-close class="text-xl font-bold">✕</button>
+ </div>
+ <p id="bookingTitle" class="text-sm text-slate-500 mb-4"></p>
+ <label class="block text-sm font-bold mb-1" for="childName">Nombre del niño o niña *</label>
+ <input id="childName" class="w-full border rounded-xl p-3 mb-3" maxlength="100" placeholder="Nombre y apellido">
+ <label class="block text-sm font-bold mb-1" for="parentPhone">Teléfono del responsable</label>
+ <input id="parentPhone" type="tel" class="w-full border rounded-xl p-3 mb-4" maxlength="30" placeholder="WhatsApp">
+ <div class="flex justify-end gap-2">
+  <button data-close class="px-4 py-2 rounded-xl bg-slate-100 font-bold">Cancelar</button>
+  <button id="saveBooking" class="px-4 py-2 rounded-xl bg-[#a8d5ba] text-white font-black">Guardar reserva</button>
+ </div>
+</section>
+
+<section id="groupsModal" class="hidden modal fixed z-50 inset-x-3 top-1/2 -translate-y-1/2 mx-auto max-w-2xl bg-white rounded-3xl p-5 md:p-7 shadow-2xl">
+ <div class="flex justify-between items-center mb-4">
+  <h2 class="text-xl font-black text-purple-800">Configurar grupos y horarios</h2>
+  <button data-close class="text-xl font-bold">✕</button>
+ </div>
+ <div id="dayTabs" class="flex gap-2 overflow-x-auto pb-3"></div>
+ <div id="groupsEditor" class="space-y-3 mb-5"></div>
+ <div class="border-t pt-4 flex flex-wrap justify-between gap-3">
+  <div class="flex gap-2">
+   <select id="newDay" class="border rounded-xl p-2 text-sm">
+    <option value="0">Domingo</option>
+    <option value="1">Lunes</option>
+    <option value="2">Martes</option>
+    <option value="3">Miércoles</option>
+    <option value="4">Jueves</option>
+    <option value="5">Viernes</option>
+    <option value="6">Sábado</option>
+   </select>
+   <button id="addDay" class="px-3 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">+ Día</button>
+  </div>
+  <div class="flex gap-2">
+   <button id="saveGroups" class="px-4 py-2 rounded-xl bg-[#b8b8da] text-white font-black">Guardar cambios</button>
+   <button data-close class="px-4 py-2 rounded-xl bg-slate-100 font-bold">Cerrar</button>
+  </div>
+ </div>
+</section>
+
+<div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] hidden max-w-[90vw] rounded-xl px-4 py-3 text-sm font-bold shadow-lg"></div>
+
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
+const DAYS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const STORAGE='gniius_calendar_v1';
+const CONFIG='gniius_firebase_config';
+
+const DEFAULT_FIREBASE_CONFIG={
+ apiKey:'AIzaSyDPZ5iDxQWc5_FK2WApVfqNZNNSS8vgLJk',
+ authDomain:'gniius-calendario.firebaseapp.com',
+ projectId:'gniius-calendario',
+ storageBucket:'gniius-calendario.firebasestorage.app',
+ messagingSenderId:'138966812457',
+ appId:'1:138966812457:web:978e55c03d8c72b99d9938'
 };
-​let cfg = JSON.parse(JSON.stringify(defaultConfig));
-let citas = {};
-let semanaBase = new Date();
-let seleccion = null;
-let diaActivoConfig = "5";
-​let app, db, auth;
-const appId = typeof __app_id !== 'undefined' ? __app_id : (localStorage.getItem('gniius_firebase_appid') || 'gniius-github-app');
-​function mostrarToast(mensaje, tipo = 'info') {
-const container = document.getElementById('toastContainer');
-const toast = document.createElement('div');
-let bgColor = 'bg-white border-[#B8B8DA] text-[#4A4A5A]';
-if (tipo === 'success') bgColor = 'bg-[#D6F0E0] border-[#A8D5BA] text-[#2D8A5A]';
-if (tipo === 'error') bgColor = 'bg-[#FFD0D0] border-[#F9A8A8] text-[#9A2A2A]';
-​toast.className = pointer-events-auto px-5 py-4 rounded-2xl shadow-2xl border-2 text-base font-extrabold flex items-center justify-between gap-4 transform translate-y-2 opacity-0 transition-all duration-300 ${bgColor};
-toast.innerHTML = <span>${mensaje}</span>;
-container.appendChild(toast);
-setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-setTimeout(() => {
-toast.classList.add('translate-y-2', 'opacity-0');
-setTimeout(() => toast.remove(), 300);
-}, 3500);
+
+if(!localStorage.getItem(CONFIG)){
+ localStorage.setItem(CONFIG,JSON.stringify(DEFAULT_FIREBASE_CONFIG));
 }
-​function mostrarConfirmacion(titulo, mensaje, callback) {
-const overlay = document.getElementById('modalConfirmOverlay');
-document.getElementById('confirmTitle').innerText = titulo;
-document.getElementById('confirmMessage').innerText = mensaje;
-overlay.classList.remove('hidden');
-​const okBtn = document.getElementById('confirmOkBtn');
-const cancelBtn = document.getElementById('confirmCancelBtn');
-const newOk = okBtn.cloneNode(true);
-const newCancel = cancelBtn.cloneNode(true);
-okBtn.parentNode.replaceChild(newOk, okBtn);
-cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
-​newOk.onclick = () => { overlay.classList.add('hidden'); callback(true); };
-newCancel.onclick = () => { overlay.classList.add('hidden'); callback(false); };
+
+const defaults={dias:{
+ "5":[
+  {id:1,nombre:"Grupo 1 - 0 a 12 meses",hora:"09:00",max:5},
+  {id:2,nombre:"Grupo 2 - 1 a 2 años",hora:"11:00",max:5},
+  {id:3,nombre:"Grupo 3 - 2 a 3 años",hora:"15:30",max:5},
+  {id:4,nombre:"Grupo 4 - 3 a 4 años",hora:"17:00",max:5}
+ ],
+ "6":[
+  {id:11,nombre:"Grupo 1 - Sábado mañana",hora:"09:30",max:5},
+  {id:12,nombre:"Grupo 2 - Sábado mañana",hora:"11:30",max:5},
+  {id:13,nombre:"Grupo 3 - Sábado tarde",hora:"15:00",max:5},
+  {id:14,nombre:"Grupo 4 - Sábado tarde",hora:"16:30",max:5}
+ ]
+}};
+
+let state=loadLocal();
+let week=new Date();
+let selectedKey=null;
+let activeDay='5';
+let app=null,auth=null,db=null,unsubscribe=null,user=null;
+let deviceAuthorized=false;
+
+const $=id=>document.getElementById(id);
+
+function clone(v){
+ return JSON.parse(JSON.stringify(v));
 }
-​async function guardarEnNube() {
-if (!auth || !auth.currentUser) {
-// Fallback to localStorage if not connected to Firebase
-localStorage.setItem('cfg_gniiUS_v4', JSON.stringify(cfg));
-localStorage.setItem('citas_gniiUS_v4', JSON.stringify(citas));
-return;
+
+function loadLocal(){
+ try{
+  const x=JSON.parse(localStorage.getItem(STORAGE));
+  if(x?.cfg?.dias)return x;
+ }catch(e){}
+ return {cfg:clone(defaults),citas:{}};
 }
-try {
-const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
-await setDoc(docRef, { cfg, citas, updatedAt: new Date().toISOString() });
-} catch (e) {
-console.error("Error guardando en Firestore:", e);
+
+function persistLocal(){
+ localStorage.setItem(STORAGE,JSON.stringify(state));
 }
+
+function toast(msg,error=false){
+ const t=$('toast');
+ t.textContent=msg;
+ t.className=`fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] max-w-[90vw] rounded-xl px-4 py-3 text-sm font-bold shadow-lg ${error?'bg-red-100 text-red-800':'bg-green-100 text-green-800'}`;
+ t.classList.remove('hidden');
+ setTimeout(()=>t.classList.add('hidden'),3000);
 }
-​async function initFirebaseAndData() {
-let firebaseConfig = {};
-if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-try { firebaseConfig = JSON.parse(__firebase_config); } catch(e){}
-} else {
-const savedCfg = localStorage.getItem('gniius_firebase_config');
-if (savedCfg) {
-try { firebaseConfig = JSON.parse(savedCfg); } catch(e){}
+
+function openModal(id){
+ $('backdrop').classList.remove('hidden');
+ $(id).classList.remove('hidden');
 }
+
+function closeModals(){
+ $('backdrop').classList.add('hidden');
+ ['firebaseModal','bookingModal','groupsModal'].forEach(id=>$(id).classList.add('hidden'));
 }
-​// Load local data first so app renders instantly
-const localCfg = localStorage.getItem('cfg_gniiUS_v4');
-const localCitas = localStorage.getItem('citas_gniiUS_v4');
-if (localCfg) { try { cfg = JSON.parse(localCfg); } catch(e){} }
-if (localCitas) { try { citas = JSON.parse(localCitas); } catch(e){} }
-​if (!firebaseConfig || !firebaseConfig.apiKey) {
-document.getElementById('firebaseNoticeBanner').classList.remove('hidden');
-const badge = document.getElementById('syncStatusBadge');
-badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
-badge.innerHTML = <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00]"></span> ⚙️ Configurar Firebase;
-render();
-return;
+
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModals));
+$('backdrop').addEventListener('click',closeModals);
+
+function weekStart(d){
+ const x=new Date(d);
+ x.setHours(0,0,0,0);
+ x.setDate(x.getDate()-x.getDay());
+ return x;
 }
-​try {
-app = initializeApp(firebaseConfig);
-db = getFirestore(app);
-auth = getAuth(app);
-​if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-await signInWithCustomToken(auth, __initial_auth_token);
-} else {
-await signInAnonymously(auth);
+
+function dateKey(d){
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-​const user = auth.currentUser;
-if (!user) return;
-​document.getElementById('firebaseNoticeBanner').classList.add('hidden');
-const badge = document.getElementById('syncStatusBadge');
-badge.className = "px-3.5 py-2 rounded-2xl bg-[#D6F0E0] text-[#2D8A5A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
-badge.innerHTML = <span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Sincronizada;
-​const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
-​onSnapshot(docRef, (docSnap) => {
-if (docSnap.exists()) {
-const data = docSnap.data();
-if (data.cfg) cfg = data.cfg;
-if (data.citas) citas = data.citas;
-render();
-} else {
-guardarEnNube();
-render();
+
+function escapeHTML(s){
+ return String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+ }[c]));
 }
-}, (error) => {
-console.error("Snapshot error:", error);
+
+function render(){
+ const start=weekStart(week);
+ const end=new Date(start);
+ end.setDate(end.getDate()+6);
+
+ $('weekTitle').textContent=
+  `${start.toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'})} — ${end.toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'})}`;
+
+ const grid=$('daysGrid');
+ grid.replaceChildren();
+ let count=0;
+
+ for(let i=0;i<7;i++){
+  const date=new Date(start);
+  date.setDate(start.getDate()+i);
+
+  const day=String(date.getDay());
+  const groups=state.cfg.dias[day];
+
+  if(!groups)continue;
+  count++;
+
+  const card=document.createElement('article');
+  card.className='bg-white rounded-3xl p-5 shadow-sm border border-purple-100';
+
+  card.innerHTML=`
+   <div class="flex justify-between items-center border-b border-purple-100 pb-3 mb-3">
+    <h3 class="font-black text-purple-800">
+     ${DAYS[date.getDay()]}
+     <span class="text-xs text-slate-500">${date.toLocaleDateString('es-PE',{day:'numeric',month:'short'})}</span>
+    </h3>
+    <button class="edit-day text-xs font-bold rounded-lg bg-purple-100 text-purple-800 px-3 py-2" data-day="${day}">Editar</button>
+   </div>
+   <div class="space-y-3"></div>
+  `;
+
+  card.querySelector('.edit-day').addEventListener('click',()=>{
+   activeDay=day;
+   openGroups();
+  });
+
+  const list=card.querySelector('.space-y-3');
+
+  groups.forEach(g=>{
+   const key=`${dateKey(date)}_${g.id}`;
+   const bookings=state.citas[key]||[];
+   const full=bookings.length>=Number(g.max);
+   const last=bookings.length>=Number(g.max)-1;
+
+   const box=document.createElement('div');
+   box.className='rounded-2xl p-3 border border-purple-100 bg-[#fbfaff]';
+
+   const status=full?'Lleno':last?'Último cupo':`${Math.max(0,g.max-bookings.length)} libres`;
+   const statusClass=full?'bg-red-100 text-red-800':last?'bg-amber-100 text-amber-800':'bg-green-100 text-green-800';
+
+   box.innerHTML=`
+    <div class="flex justify-between items-start gap-2">
+     <b class="text-sm">${escapeHTML(g.nombre)}</b>
+     <span class="text-[10px] font-black px-2 py-1 rounded-full ${statusClass}">${status}</span>
+    </div>
+    <p class="text-xs text-slate-500 mt-1">⏰ ${escapeHTML(g.hora)} · Máx. ${g.max}</p>
+    <div class="booking-list mt-2 space-y-2"></div>
+    <button class="reserve mt-3 w-full rounded-xl py-2.5 text-sm font-black ${full?'bg-slate-100 text-slate-400':'bg-[#b8b8da] text-white'}" ${full?'disabled':''}>
+     ${full?'Cupo completo':'+ Reservar cupo'}
+    </button>
+   `;
+
+   const bookingList=box.querySelector('.booking-list');
+
+   if(!bookings.length){
+    const p=document.createElement('p');
+    p.className='text-xs italic text-slate-400 text-center py-2';
+    p.textContent='Sin reservas aún';
+    bookingList.append(p);
+   }
+
+   bookings.forEach((b,idx)=>{
+    const row=document.createElement('div');
+    row.className='flex items-center justify-between gap-2 bg-white border border-purple-100 rounded-xl p-2 text-xs';
+
+    const info=document.createElement('span');
+    info.className='min-w-0';
+
+    const strong=document.createElement('b');
+    strong.textContent=b.nombre;
+    info.append(strong);
+
+    const phone=document.createElement('span');
+    phone.className='block text-slate-400';
+    phone.textContent=b.tel||'Sin teléfono';
+    info.append(phone);
+
+    const del=document.createElement('button');
+    del.className='text-red-600 font-black px-2';
+    del.textContent='✕';
+    del.title='Eliminar reserva';
+    del.addEventListener('click',()=>removeBooking(key,idx));
+
+    row.append(info,del);
+    bookingList.append(row);
+   });
+
+   box.querySelector('.reserve').addEventListener('click',()=>{
+    openBooking(key,`${g.nombre} · ${date.toLocaleDateString('es-PE')} · ${g.hora}`);
+   });
+
+   list.append(box);
+  });
+
+  grid.append(card);
+ }
+
+ if(!count){
+  grid.innerHTML=`
+   <div class="col-span-full bg-white rounded-3xl p-8 text-center border border-purple-100">
+    <div class="text-5xl mb-3">🦕</div>
+    <b class="text-purple-800">No hay grupos configurados para esta semana</b>
+    <p class="text-sm text-slate-500 mt-2">Abre “Configurar días” para agregar horarios.</p>
+   </div>
+  `;
+ }
+}
+
+function openBooking(key,title){
+ selectedKey=key;
+ $('bookingTitle').textContent=title;
+ $('childName').value='';
+ $('parentPhone').value='';
+ openModal('bookingModal');
+ $('childName').focus();
+}
+
+$('saveBooking').addEventListener('click',async()=>{
+ const nombre=$('childName').value.trim();
+ const tel=$('parentPhone').value.trim();
+
+ if(!nombre){
+  toast('Escribe el nombre del niño o niña.',true);
+  return;
+ }
+
+ const [date,id]=selectedKey.split('_');
+ const day=String(new Date(date+'T00:00:00').getDay());
+ const group=state.cfg.dias[day]?.find(g=>String(g.id)===id);
+
+ if(!group){
+  toast('No se encontró el grupo.',true);
+  return;
+ }
+
+ const list=state.citas[selectedKey]??=[];
+
+ if(list.length>=Number(group.max)){
+  toast('Este grupo ya está lleno.',true);
+  return;
+ }
+
+ list.push({nombre,tel:tel||'Sin teléfono'});
+ await saveData();
+ closeModals();
+ render();
+ toast('Reserva guardada correctamente.');
 });
-​} catch (e) {
-console.error("Auth/Firestore connection error:", e);
-document.getElementById('firebaseNoticeBanner').classList.remove('hidden');
-const badge = document.getElementById('syncStatusBadge');
-badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
-badge.innerHTML = <span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> ⚠️ Error de Conexión;
-render();
+
+async function removeBooking(key,index){
+ if(!confirm('¿Deseas eliminar esta reserva y liberar el cupo?'))return;
+
+ state.citas[key]?.splice(index,1);
+
+ if(!state.citas[key]?.length){
+  delete state.citas[key];
+ }
+
+ await saveData();
+ render();
+ toast('Cupo liberado.');
 }
+
+function openGroups(){
+ if(!state.cfg.dias[activeDay]){
+  activeDay=Object.keys(state.cfg.dias)[0]||'5';
+ }
+ renderEditor();
+ openModal('groupsModal');
 }
-​window.abrirFirebaseSetup = function() {
-let saved = localStorage.getItem('gniius_firebase_config');
-if (saved) {
-document.getElementById('inputFirebaseConfigJson').value = saved;
+
+function renderEditor(){
+ const tabs=$('dayTabs');
+ tabs.replaceChildren();
+
+ Object.keys(state.cfg.dias).sort((a,b)=>+a-+b).forEach(day=>{
+  const b=document.createElement('button');
+  b.textContent=DAYS[day];
+  b.className=`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap ${day===activeDay?'bg-[#b8b8da] text-white':'bg-purple-100 text-purple-800'}`;
+  b.onclick=()=>{
+   activeDay=day;
+   renderEditor();
+  };
+  tabs.append(b);
+ });
+
+ const panel=$('groupsEditor');
+ panel.replaceChildren();
+
+ const groups=state.cfg.dias[activeDay]||[];
+
+ if(!groups.length){
+  panel.innerHTML='<p class="text-sm text-slate-500">No hay grupos. Añade uno.</p>';
+ }
+
+ groups.forEach((g,i)=>{
+  const row=document.createElement('div');
+  row.className='border border-purple-100 rounded-2xl p-3 grid grid-cols-1 sm:grid-cols-[1fr_120px_90px_auto] gap-2 items-end';
+
+  row.innerHTML=`
+   <label class="text-xs font-bold text-slate-500">
+    Nombre
+    <input data-field="nombre" class="block w-full mt-1 border rounded-lg p-2 text-sm text-slate-800" maxlength="100" value="${escapeHTML(g.nombre)}">
+   </label>
+   <label class="text-xs font-bold text-slate-500">
+    Hora
+    <input data-field="hora" type="time" class="block w-full mt-1 border rounded-lg p-2 text-sm text-slate-800" value="${escapeHTML(g.hora)}">
+   </label>
+   <label class="text-xs font-bold text-slate-500">
+    Cupos
+    <input data-field="max" type="number" min="1" max="30" class="block w-full mt-1 border rounded-lg p-2 text-sm text-slate-800" value="${g.max}">
+   </label>
+   <button class="delete-group rounded-lg bg-red-100 text-red-700 px-3 py-2 font-bold">🗑</button>
+  `;
+
+  row.querySelector('.delete-group').onclick=()=>{
+   if(!confirm('¿Eliminar este grupo?'))return;
+   groups.splice(i,1);
+   renderEditor();
+  };
+
+  panel.append(row);
+ });
+
+ const add=document.createElement('button');
+ add.textContent='+ Añadir grupo';
+ add.className='px-4 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm';
+
+ add.onclick=()=>{
+  groups.push({id:Date.now(),nombre:'Nuevo grupo',hora:'10:00',max:5});
+  renderEditor();
+ };
+
+ panel.append(add);
+
+ if(Object.keys(state.cfg.dias).length>1){
+  const del=document.createElement('button');
+  del.textContent='Eliminar día';
+  del.className='ml-2 px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold text-sm';
+
+  del.onclick=()=>{
+   if(confirm(`¿Eliminar ${DAYS[activeDay]} de la programación?`)){
+    delete state.cfg.dias[activeDay];
+    activeDay=Object.keys(state.cfg.dias)[0]||'5';
+    renderEditor();
+   }
+  };
+
+  panel.append(del);
+ }
 }
-document.getElementById('modalFirebaseSetup').classList.remove('hidden');
-document.getElementById('overlay').classList.remove('hidden');
-}
-window.cerrarFirebaseSetup = function() {
-document.getElementById('modalFirebaseSetup').classList.add('hidden');
-document.getElementById('overlay').classList.add('hidden');
-}
-window.guardarFirebaseConfigManual = function() {
-let txt = document.getElementById('inputFirebaseConfigJson').value.trim();
-if (!txt) return mostrarToast('Ingresa la configuración de Firebase', 'error');
-try {
-let parsed = JSON.parse(txt);
-if (!parsed.apiKey) throw new Error();
-localStorage.setItem('gniius_firebase_config', JSON.stringify(parsed));
-if (parsed.projectId) localStorage.setItem('gniius_firebase_appid', parsed.projectId);
-cerrarFirebaseSetup();
-mostrarToast('¡Configuración guardada! Conectando...', 'success');
-setTimeout(() => location.reload(), 1000);
-} catch (e) {
-mostrarToast('JSON inválido. Asegúrate de copiar todo el objeto correctamente.', 'error');
-}
-}
-window.borrarFirebaseConfig = function() {
-localStorage.removeItem('gniius_firebase_config');
-localStorage.removeItem('gniius_firebase_appid');
-cerrarFirebaseSetup();
-mostrarToast('Configuración eliminada. Usando modo local.', 'success');
-setTimeout(() => location.reload(), 1000);
-}
-​function formatearFecha(d) { return d.toISOString().split('T')[0]; }
-window.cambiarSemana = function(dir) { semanaBase.setDate(semanaBase.getDate() + dir * 7); render(); }
-window.irHoy = function() { semanaBase = new Date(); render(); }
-window.cerrarTodo = function() { cerrarConfig(); cerrarNino(); cerrarFirebaseSetup(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
-​function render() {
-let inicioSem = new Date(semanaBase);
-inicioSem.setDate(inicioSem.getDate() - inicioSem.getDay());
-let finSem = new Date(inicioSem);
-finSem.setDate(finSem.getDate() + 6);
-​document.getElementById('tituloSemana').innerText =
-${inicioSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})} — ${finSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})};
-​let cont = document.getElementById('contenedorDias');
-cont.innerHTML = '';
-let diasConGruposCount = 0;
-​for (let i = 0; i < 7; i++) {
-let fecha = new Date(inicioSem);
-fecha.setDate(inicioSem.getDate() + i);
-let diaNum = String(fecha.getDay());
-if (!cfg.dias[diaNum]) continue;
-diasConGruposCount++;
-let gruposDelDia = cfg.dias[diaNum];
-let fechaStr = formatearFecha(fecha);
-​let diaCard = document.createElement('div');
-diaCard.className = 'bg-white rounded-3xl p-5 md:p-6 shadow-[0_6px_25px_rgba(184,184,218,0.12)] border-2 border-[#F0F0FF] flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-xl';
-diaCard.innerHTML = <div class="flex justify-between items-center border-b-2 border-[#EDEAFB] pb-3.5"> <h4 class="font-black text-[#6A6AA8] text-base md:text-lg flex items-center gap-2"> 📅 ${NOMBRES_DIA[fecha.getDay()]} <span class="text-xs md:text-sm font-bold text-[#8A8AAB] bg-[#FBFAFF] px-2.5 py-0.5 rounded-full border border-[#EDEAFB]">${fecha.toLocaleDateString('es-PE', {day: 'numeric', month: 'short'})}</span> </h4> <button class="px-3.5 py-1.5 text-xs md:text-sm font-extrabold rounded-xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] transition" onclick="editarDiaRapido('${diaNum}')">✏️ Editar</button> </div> <div id="grupos-${fechaStr}" class="space-y-4 flex-1"></div>;
-cont.appendChild(diaCard);
-​let gruposDiv = diaCard.querySelector(#grupos-${fechaStr});
-gruposDelDia.forEach(g => {
-let key = ${fechaStr}-${g.id};
-let lista = citas[key] || [];
-let ocup = lista.length;
-let estado = ocup >= g.max ? 'bg-[#FFD0D0] text-[#9A2A2A]' : ocup >= g.max - 1 ? 'bg-[#FFF0C0] text-[#8A6A00]' : 'bg-[#D6F0E0] text-[#2D8A5A]';
-let estadoTxt = ocup >= g.max ? 'LLENO' : ${g.max - ocup} libres;
-​let grupoCard = document.createElement('div');
-grupoCard.className = rounded-2xl p-4.5 border-l-6 bg-[#FBFAFF] border-2 border-[#EDEAFB] relative overflow-hidden transition-all hover:shadow-md ${ocup >= g.max ? 'border-l-[#F9A8A8] bg-[#FFF8F8]' : 'border-l-[#B8B8DA]'};
-​let ninosHtml = lista.map((n, idx) => <div class="bg-white border-2 border-[#EDEAFB] px-3.5 py-2.5 rounded-xl flex justify-between items-center text-sm shadow-2xs mt-2"> <span class="font-extrabold text-[#4A4A5A] truncate mr-2" title="${n.nombre} (${n.tel})">👶 <b>${n.nombre}</b> <span class="text-[#8A8AAB] font-medium text-xs block md:inline">(${n.tel})</span></span> <button class="w-7 h-7 rounded-lg bg-[#FFD0D0]/50 hover:bg-[#FFD0D0] text-red-600 font-black flex items-center justify-center transition shrink-0" onclick="eliminarNino('${key}', ${idx})" title="Liberar cupo">✕</button> </div>).join('') || '<div class="text-xs text-[#8A8AAB] font-medium italic mt-2 py-1 px-2 bg-white/60 rounded-lg border border-[#EDEAFB] text-center">🦕 Sin reservas aún</div>';
-​grupoCard.innerHTML = <div class="flex justify-between items-start gap-2"> <span class="font-black text-sm md:text-base text-[#4A4A5A] leading-snug">${g.nombre}</span> <span class="px-2.5 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow-2xs ${estado}">${estadoTxt}</span> </div> <div class="text-xs md:text-sm text-[#8A8AAB] font-bold mt-1.5 flex items-center gap-2"> <span>⏰ ${g.hora}</span> <span>•</span> <span>Máx: ${g.max} cupos</span> </div> <div class="mt-3 space-y-1.5">${ninosHtml}</div> <button class="mt-4 w-full py-3 px-4 rounded-2xl font-extrabold text-sm transition shadow-sm flex items-center justify-center gap-2 ${ocup >= g.max ? 'bg-[#EDEAFB] text-[#8A8AAB] cursor-not-allowed' : 'bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white'}" ${ocup >= g.max ? 'disabled' : ''} onclick="abrirNino('${key}', '${g.nombre} (${fechaStr} - ${g.hora})')"> ${ocup >= g.max ? 'Cupo Completo' : '+ Reservar Cupo'} </button>;
-gruposDiv.appendChild(grupoCard);
-});
-}
-​if (diasConGruposCount === 0) {
-cont.innerHTML = <div class="col-span-full py-16 text-center bg-white rounded-3xl border-2 border-[#EDEAFB] p-8 shadow-sm"> <div class="text-6xl mb-4">🦕</div> <h4 class="text-xl font-black text-[#6A6AA8]">No hay grupos configurados para esta semana</h4> <p class="text-sm text-[#8A8AAB] font-medium mt-1.5 mb-6 max-w-md mx-auto">Haz clic en Configurar Días para activar grupos y horarios de atención.</p> <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] text-white font-extrabold text-base hover:bg-[#A8A8D0] transition shadow-md" onclick="abrirConfig()">Abrir Configuración</button> </div>;
-}
-}
-​window.abrirNino = function(key, titulo) {
-seleccion = key;
-document.getElementById('tituloModalNino').innerText = 'Reservar: ' + titulo;
-document.getElementById('modalNino').classList.remove('hidden');
-document.getElementById('overlay').classList.remove('hidden');
-document.getElementById('nombreNino').focus();
-}
-​window.cerrarNino = function() {
-document.getElementById('modalNino').classList.add('hidden');
-document.getElementById('overlay').classList.add('hidden');
-document.getElementById('nombreNino').value = '';
-document.getElementById('telNino').value = '';
-seleccion = null;
-}
-​window.confirmarNino = function() {
-let nombre = document.getElementById('nombreNino').value.trim();
-let tel = document.getElementById('telNino').value.trim();
-if (!nombre) {
-mostrarToast('Por favor, ingresa el nombre del niño o niña.', 'error');
-return;
-}
-​let grupoId = seleccion.split('-').pop();
-let fechaCita = seleccion.substring(0, 10);
-let diaNum = String(new Date(fechaCita + 'T00:00:00').getDay());
-let max = cfg.dias[diaNum]?.find(g => String(g.id) === String(grupoId))?.max || 5;
-​if (!citas[seleccion]) citas[seleccion] = [];
-if (citas[seleccion].length >= max) {
-mostrarToast('Este grupo ya se encuentra lleno.', 'error');
-return;
-}
-​citas[seleccion].push({ nombre, tel: tel || 'Sin teléfono' });
-guardarEnNube();
-cerrarNino();
-render();
-mostrarToast('¡Reserva registrada con éxito! 🦕', 'success');
-}
-​window.eliminarNino = function(key, idx) {
-mostrarConfirmacion('Liberar Cupo', '¿Estás seguro de liberar este cupo?', (aceptado) => {
-if (aceptado) {
-citas[key].splice(idx, 1);
-guardarEnNube();
-render();
-mostrarToast('Cupo liberado correctamente.', 'success');
-}
-});
-}
-​window.abrirConfig = function() {
-if (!cfg.dias[diaActivoConfig]) diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
-renderTabs();
-document.getElementById('modalConfig').classList.remove('hidden');
-document.getElementById('overlay').classList.remove('hidden');
-}
-​window.editarDiaRapido = function(diaNum) { diaActivoConfig = diaNum; abrirConfig(); }
-​function renderTabs() {
-let tabs = document.getElementById('tabsDias');
-tabs.innerHTML = '';
-let keysOrdenadas = Object.keys(cfg.dias).sort((a,b) => Number(a)-Number(b));
-if (keysOrdenadas.length > 0 && !cfg.dias[diaActivoConfig]) diaActivoConfig = keysOrdenadas[0];
-​keysOrdenadas.forEach(d => {
-let b = document.createElement('button');
-b.className = px-5 py-2.5 rounded-2xl text-sm font-extrabold transition whitespace-nowrap shadow-2xs ${d === diaActivoConfig ? 'bg-[#B8B8DA] text-white shadow-md' : 'bg-[#EDEAFB] text-[#6A6AA8] hover:bg-[#D8D4F5]'};
-b.innerText = NOMBRES_DIA[d];
-b.onclick = () => { diaActivoConfig = d; renderTabs(); };
-tabs.appendChild(b);
-});
-​let panel = document.getElementById('panelDia');
-if (!cfg.dias[diaActivoConfig]) {
-panel.innerHTML = '<div class="text-center py-10 text-base text-[#8A8AAB] font-medium">No hay días activos configurados.</div>';
-return;
-}
-​let grupos = cfg.dias[diaActivoConfig];
-let html = <div class="text-sm font-black text-[#6A6AA8] mb-3 uppercase tracking-wider">Grupos programados para los ${NOMBRES_DIA[diaActivoConfig]}s (${grupos.length})</div>;
-​grupos.forEach((g, i) => {
-html += <div class="bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs"> <div> <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Nombre del Grupo</label> <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gNom-${diaActivoConfig}-${i}" value="${g.nombre}"> </div> <div class="flex items-center gap-3"> <div class="flex-1"> <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Hora</label> <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gHora-${diaActivoConfig}-${i}" type="time" value="${g.hora}"> </div> <div class="w-32"> <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Máx Cupos</label> <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gMax-${diaActivoConfig}-${i}" type="number" min="1" max="30" value="${g.max}"> </div> <div class="flex items-end"> <button class="w-11 h-11 rounded-xl bg-[#FFD0D0] hover:bg-[#F9A8A8] text-[#9A2A2A] font-black text-base transition flex items-center justify-center shrink-0 mt-6 shadow-2xs" onclick="borrarGrupoDia('${diaActivoConfig}', ${i})">🗑️</button> </div> </div> </div>;
-});
-​html += <div class="flex flex-wrap items-center justify-between gap-3 pt-3"> <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="addGrupoDia('${diaActivoConfig}')">+ Añadir Grupo</button> <button class="px-4.5 py-2.5 rounded-2xl bg-[#FFD0D0]/70 hover:bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-sm transition" onclick="borrarDia('${diaActivoConfig}')">🗑️ Eliminar Día</button> </div>;
-panel.innerHTML = html;
-}
-​window.addGrupoDia = function(diaNum) { cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 }); renderTabs(); }
-window.borrarGrupoDia = function(diaNum, i) {
-if (cfg.dias[diaNum].length <= 1) { mostrarToast('Debe haber al menos un grupo.', 'error'); return; }
-cfg.dias[diaNum].splice(i, 1);
-renderTabs();
-}
-window.agregarDia = function() {
-let nuevo = document.getElementById('nuevoDiaSelect').value;
-if (cfg.dias[nuevo]) { mostrarToast('El día ya está configurado.', 'error'); return; }
-cfg.dias[nuevo] = [{ id: Date.now(), nombre: Grupo ${NOMBRES_DIA[nuevo]}, hora: "09:00", max: 5 }];
-diaActivoConfig = nuevo;
-renderTabs();
-}
-window.borrarDia = function(diaNum) {
-if (Object.keys(cfg.dias).length <= 1) { mostrarToast('Debe mantener al menos un día.', 'error'); return; }
-mostrarConfirmacion('Eliminar Día', '¿Estás seguro de eliminar este día?', (aceptado) => {
-if (aceptado) {
-delete cfg.dias[diaNum];
-diaActivoConfig = Object.keys(cfg.dias)[0] || "1";
-renderTabs();
-}
-});
-}
-​window.cerrarConfig = function() { document.getElementById('modalConfig').classList.add('hidden'); document.getElementById('overlay').classList.add('hidden'); }
-window.guardarTodo = function() {
-Object.keys(cfg.dias).forEach(diaNum => {
-cfg.dias[diaNum].forEach((g, i) => {
-let nom = document.getElementById(gNom-${diaNum}-${i});
-let hora = document.getElementById(gHora-${diaNum}-${i});
-let max = document.getElementById(gMax-${diaNum}-${i});
-if (nom && hora && max) {
-g.nombre = nom.value.trim() || 'Grupo';
-g.hora = hora.value || '09:00';
-g.max = Math.max(1, parseInt(max.value) || 5);
-}
-});
-});
-localStorage.setItem('cfg_gniiUS_v4', JSON.stringify(cfg));
-guardarEnNube();
-cerrarConfig();
-render();
-}
-​window.onload = function() {
-initFirebaseAndData();
+
+$('saveGroups').onclick=async()=>{
+ const panel=$('groupsEditor');
+ const rows=[...panel.querySelectorAll(':scope > div')];
+ const groups=state.cfg.dias[activeDay]||[];
+
+ rows.forEach((row,i)=>{
+  if(!groups[i])return;
+
+  groups[i].nombre=row.querySelector('[data-field="nombre"]').value.trim()||'Grupo';
+  groups[i].hora=row.querySelector('[data-field="hora"]').value||'09:00';
+  groups[i].max=Math.min(30,Math.max(1,parseInt(row.querySelector('[data-field="max"]').value)||5));
+ });
+
+ await saveData();
+ closeModals();
+ render();
+ toast('Programación guardada.');
 };
-</script>
-</body>
-</html>
+
+$('addDay').onclick
