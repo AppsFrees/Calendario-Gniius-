@@ -20,7 +20,6 @@
     font-family: 'Inter', system-ui, sans-serif;
     color: #4A4A5A;
   }
-  /* Custom scrollbar */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: #F0F0FF; }
   ::-webkit-scrollbar-thumb { background: #B8B8DA; border-radius: 9999px; }
@@ -28,18 +27,48 @@
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-[#B8B8DA] selection:text-white text-base">
 
-  <!-- Toast Notification Box (Replaces native alerts) -->
+  <!-- Toast Notification Box -->
   <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-md pointer-events-none"></div>
 
-  <!-- Custom Confirm/Prompt Modal Overlay -->
+  <!-- Custom Confirm Modal -->
   <div id="modalConfirmOverlay" class="fixed inset-0 bg-[#4A4A5A]/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full border border-[#EDEAFB] transform transition-all">
+    <div class="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full border border-[#EDEAFB]">
       <h3 id="confirmTitle" class="text-xl font-extrabold text-[#6A6AA8] mb-3">Confirmación</h3>
       <p id="confirmMessage" class="text-base text-[#5A5A6A] mb-8 leading-relaxed">¿Estás seguro de realizar esta acción?</p>
       <div class="flex justify-end gap-3.5">
         <button id="confirmCancelBtn" class="px-5 py-3 rounded-2xl bg-[#EDEAFB] text-[#6A6AA8] font-bold text-base hover:bg-[#D8D4F5] transition">Cancelar</button>
         <button id="confirmOkBtn" class="px-5 py-3 rounded-2xl bg-[#F9A8A8] text-white font-bold text-base hover:bg-[#F69696] transition shadow-md">Aceptar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Cloud Sync Status Modal -->
+  <div id="modalSync" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-2 border-[#EAE6FF] z-50 hidden">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-black text-[#6A6AA8]">☁️ Sincronización en la Nube</h3>
+      <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarSync()">✕</button>
+    </div>
+    <p class="text-sm text-[#8A8AAB] mb-4 font-medium leading-relaxed">
+      Para que los datos se guarden y sincronicen entre diferentes celulares usando GitHub, conectaremos la app a una <b>GitHub Gist</b> gratuita.
+    </p>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">GitHub Personal Access Token (PAT)</label>
+        <input id="syncToken" type="password" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <span class="text-xs text-[#8A8AAB] mt-1 block">Necesita permisos de lectura/escritura en Gists.</span>
+      </div>
+      <div>
+        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">ID del Gist (opcional)</label>
+        <input id="syncGistId" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Déjalo vacío para crear uno nuevo automáticamente">
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3.5 mt-8">
+      <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarSync()">Cancelar</button>
+      <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black text-base transition shadow-md flex items-center gap-2" onclick="guardarConfigSync()">
+        💾 Guardar y Conectar
+      </button>
     </div>
   </div>
 
@@ -63,6 +92,9 @@
     </div>
 
     <div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
+      <button class="px-4 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirSync()">
+        ☁️ Sincronizar GitHub
+      </button>
       <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
         ⚙️ Configurar Días
       </button>
@@ -99,7 +131,6 @@
     <div id="contenedorDias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"></div>
   </main>
 
-  <!-- Background decorative element -->
   <div class="fixed right-[-20px] bottom-[-20px] w-56 opacity-[0.06] pointer-events-none select-none z-0 text-[10rem]">🦕</div>
 
   <!-- Universal Backdrop Overlay -->
@@ -112,23 +143,13 @@
       <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarConfig()">✕</button>
     </div>
     
-    <!-- Day Tabs -->
     <div id="tabsDias" class="flex gap-2.5 overflow-x-auto pb-3 mb-5 scrollbar-none"></div>
-
-    <!-- Active Day Panel Content -->
     <div id="panelDia" class="flex-1 overflow-y-auto pr-2 space-y-4 mb-5"></div>
 
-    <!-- Add Day Footer action -->
     <div class="pt-5 border-t-2 border-[#EDEAFB] flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <select id="nuevoDiaSelect" class="px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] text-base font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]">
-          <option value="0">Domingo</option>
-          <option value="1">Lunes</option>
-          <option value="2">Martes</option>
-          <option value="3">Miércoles</option>
-          <option value="4">Jueves</option>
-          <option value="5">Viernes</option>
-          <option value="6">Sábado</option>
+          <option value="0">Domingo</option><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option>
         </select>
         <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition shadow-xs" onclick="agregarDia()">+ Añadir día</button>
       </div>
@@ -166,7 +187,6 @@
     </div>
   </div>
 
-  <!-- Application Logic -->
   <script>
     const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     
@@ -192,22 +212,20 @@
     let seleccion = null;
     let diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
 
+    // GitHub Gist sync credentials stored locally
+    let syncCreds = JSON.parse(localStorage.getItem('gniiUS_sync_creds') || '{}');
+
     function mostrarToast(mensaje, tipo = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
-      
       let bgColor = 'bg-white border-[#B8B8DA] text-[#4A4A5A]';
       if (tipo === 'success') bgColor = 'bg-[#D6F0E0] border-[#A8D5BA] text-[#2D8A5A]';
       if (tipo === 'error') bgColor = 'bg-[#FFD0D0] border-[#F9A8A8] text-[#9A2A2A]';
 
       toast.className = `pointer-events-auto px-5 py-4 rounded-2xl shadow-2xl border-2 text-base font-extrabold flex items-center justify-between gap-4 transform translate-y-2 opacity-0 transition-all duration-300 ${bgColor}`;
       toast.innerHTML = `<span>${mensaje}</span>`;
-      
       container.appendChild(toast);
-      setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      }, 10);
-
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
       setTimeout(() => {
         toast.classList.add('translate-y-2', 'opacity-0');
         setTimeout(() => toast.remove(), 300);
@@ -218,46 +236,122 @@
       const overlay = document.getElementById('modalConfirmOverlay');
       document.getElementById('confirmTitle').innerText = titulo;
       document.getElementById('confirmMessage').innerText = mensaje;
-      
       overlay.classList.remove('hidden');
       
       const okBtn = document.getElementById('confirmOkBtn');
       const cancelBtn = document.getElementById('confirmCancelBtn');
-
       const newOk = okBtn.cloneNode(true);
       const newCancel = cancelBtn.cloneNode(true);
       okBtn.parentNode.replaceChild(newOk, okBtn);
       cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
 
-      newOk.onclick = () => {
-        overlay.classList.add('hidden');
-        callback(true);
-      };
-      newCancel.onclick = () => {
-        overlay.classList.add('hidden');
-        callback(false);
-      };
+      newOk.onclick = () => { overlay.classList.add('hidden'); callback(true); };
+      newCancel.onclick = () => { overlay.classList.add('hidden'); callback(false); };
     }
 
-    function formatearFecha(d) {
-      return d.toISOString().split('T')[0];
+    function abrirSync() {
+      document.getElementById('syncToken').value = syncCreds.token || '';
+      document.getElementById('syncGistId').value = syncCreds.gistId || '';
+      document.getElementById('modalSync').classList.remove('hidden');
+      document.getElementById('overlay').classList.remove('hidden');
     }
 
-    function cambiarSemana(dir) {
-      semanaBase.setDate(semanaBase.getDate() + dir * 7);
-      render();
+    function cerrarSync() {
+      document.getElementById('modalSync').classList.add('hidden');
+      document.getElementById('overlay').classList.add('hidden');
     }
 
-    function irHoy() {
-      semanaBase = new Date();
-      render();
+    async function guardarConfigSync() {
+      let token = document.getElementById('syncToken').value.trim();
+      let gistId = document.getElementById('syncGistId').value.trim();
+      if (!token) {
+        mostrarToast('Ingresa tu Token de GitHub.', 'error');
+        return;
+      }
+      syncCreds = { token, gistId };
+      localStorage.setItem('gniiUS_sync_creds', JSON.stringify(syncCreds));
+      cerrarSync();
+      mostrarToast('Credenciales guardadas. Sincronizando...', 'info');
+      await sincronizarConGitHub(true);
     }
 
-    function cerrarTodo() {
-      cerrarConfig();
-      cerrarNino();
-      document.getElementById('modalConfirmOverlay').classList.add('hidden');
+    async function sincronizarConGitHub(forzarSubida = false) {
+      if (!syncCreds.token) return;
+      try {
+        let headers = {
+          'Authorization': `token ${syncCreds.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        };
+
+        if (!syncCreds.gistId && forzarSubida) {
+          // Crear un Gist nuevo
+          let res = await fetch('https://api.github.com/gists', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              description: "GniiUS Centro Psicologico Database",
+              public: false,
+              files: {
+                "gniius_data.json": {
+                  content: JSON.stringify({ cfg, citas }, null, 2)
+                }
+              }
+            })
+          });
+          let data = await res.json();
+          if (data.id) {
+            syncCreds.gistId = data.id;
+            localStorage.setItem('gniiUS_sync_creds', JSON.stringify(syncCreds));
+            mostrarToast('¡Gist creado y sincronizado en la nube!', 'success');
+          }
+          return;
+        }
+
+        if (syncCreds.gistId) {
+          let res = await fetch(`https://api.github.com/gists/${syncCreds.gistId}`, { headers });
+          let gist = await res.json();
+          if (gist.files && gist.files['gniius_data.json']) {
+            let remoteData = JSON.parse(gist.files['gniius_data.json'].content);
+            if (!forzarSubida) {
+              cfg = remoteData.cfg || cfg;
+              citas = remoteData.citas || citas;
+              localStorage.setItem('cfg_gniiUS_v3', JSON.stringify(cfg));
+              localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
+              render();
+            }
+          }
+
+          if (forzarSubida) {
+            await fetch(`https://api.github.com/gists/${syncCreds.gistId}`, {
+              method: 'PATCH',
+              headers: headers,
+              body: JSON.stringify({
+                files: {
+                  "gniius_data.json": {
+                    content: JSON.stringify({ cfg, citas }, null, 2)
+                  }
+                }
+              })
+            });
+            mostrarToast('Datos sincronizados con éxito en GitHub.', 'success');
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        if (forzarSubida) mostrarToast('Error al sincronizar con GitHub.', 'error');
+      }
     }
+
+    function guardarDatosLocalesYNube() {
+      localStorage.setItem('cfg_gniiUS_v3', JSON.stringify(cfg));
+      localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
+      sincronizarConGitHub(true);
+    }
+
+    function formatearFecha(d) { return d.toISOString().split('T')[0]; }
+    function cambiarSemana(dir) { semanaBase.setDate(semanaBase.getDate() + dir * 7); render(); }
+    function irHoy() { semanaBase = new Date(); render(); }
+    function cerrarTodo() { cerrarConfig(); cerrarNino(); cerrarSync(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
 
     function render() {
       let inicioSem = new Date(semanaBase);
@@ -270,14 +364,12 @@
 
       let cont = document.getElementById('contenedorDias');
       cont.innerHTML = '';
-
       let diasConGruposCount = 0;
 
       for (let i = 0; i < 7; i++) {
         let fecha = new Date(inicioSem);
         fecha.setDate(inicioSem.getDate() + i);
         let diaNum = String(fecha.getDay());
-        
         if (!cfg.dias[diaNum]) continue;
         diasConGruposCount++;
         let gruposDelDia = cfg.dias[diaNum];
@@ -285,20 +377,18 @@
 
         let diaCard = document.createElement('div');
         diaCard.className = 'bg-white rounded-3xl p-5 md:p-6 shadow-[0_6px_25px_rgba(184,184,218,0.12)] border-2 border-[#F0F0FF] flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-xl';
-        
         diaCard.innerHTML = `
           <div class="flex justify-between items-center border-b-2 border-[#EDEAFB] pb-3.5">
             <h4 class="font-black text-[#6A6AA8] text-base md:text-lg flex items-center gap-2">
               📅 ${NOMBRES_DIA[fecha.getDay()]} <span class="text-xs md:text-sm font-bold text-[#8A8AAB] bg-[#FBFAFF] px-2.5 py-0.5 rounded-full border border-[#EDEAFB]">${fecha.toLocaleDateString('es-PE', {day: 'numeric', month: 'short'})}</span>
             </h4>
-            <button class="px-3.5 py-1.5 text-xs md:text-sm font-extrabold rounded-xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] transition shadow-2xs" onclick="editarDiaRapido('${diaNum}')">✏️ Editar</button>
+            <button class="px-3.5 py-1.5 text-xs md:text-sm font-extrabold rounded-xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] transition" onclick="editarDiaRapido('${diaNum}')">✏️ Editar</button>
           </div>
           <div id="grupos-${fechaStr}" class="space-y-4 flex-1"></div>
         `;
         cont.appendChild(diaCard);
 
         let gruposDiv = diaCard.querySelector(`#grupos-${fechaStr}`);
-        
         gruposDelDia.forEach(g => {
           let key = `${fechaStr}-${g.id}`;
           let lista = citas[key] || [];
@@ -338,7 +428,7 @@
           <div class="col-span-full py-16 text-center bg-white rounded-3xl border-2 border-[#EDEAFB] p-8 shadow-sm">
             <div class="text-6xl mb-4">🦕</div>
             <h4 class="text-xl font-black text-[#6A6AA8]">No hay grupos configurados para esta semana</h4>
-            <p class="text-sm text-[#8A8AAB] font-medium mt-1.5 mb-6 max-w-md mx-auto">Haz clic en Configurar Días para activar grupos y horarios de atención personalizados.</p>
+            <p class="text-sm text-[#8A8AAB] font-medium mt-1.5 mb-6 max-w-md mx-auto">Haz clic en Configurar Días para activar grupos y horarios de atención.</p>
             <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] text-white font-extrabold text-base hover:bg-[#A8A8D0] transition shadow-md" onclick="abrirConfig()">Abrir Configuración</button>
           </div>
         `;
@@ -364,21 +454,15 @@
     function confirmarNino() {
       let nombre = document.getElementById('nombreNino').value.trim();
       let tel = document.getElementById('telNino').value.trim();
-      
       if (!nombre) {
         mostrarToast('Por favor, ingresa el nombre del niño o niña.', 'error');
-        document.getElementById('nombreNino').focus();
         return;
       }
 
       let grupoId = seleccion.split('-').pop();
       let fechaCita = seleccion.substring(0, 10);
       let diaNum = String(new Date(fechaCita + 'T00:00:00').getDay());
-      let max = 5;
-
-      try {
-        max = cfg.dias[diaNum]?.find(g => String(g.id) === String(grupoId))?.max || 5;
-      } catch (e) {}
+      let max = cfg.dias[diaNum]?.find(g => String(g.id) === String(grupoId))?.max || 5;
 
       if (!citas[seleccion]) citas[seleccion] = [];
       if (citas[seleccion].length >= max) {
@@ -387,8 +471,7 @@
       }
 
       citas[seleccion].push({ nombre, tel: tel || 'Sin teléfono' });
-      localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
-      
+      guardarDatosLocalesYNube();
       cerrarNino();
       render();
       mostrarToast('¡Reserva registrada con éxito! 🦕', 'success');
@@ -398,7 +481,7 @@
       mostrarConfirmacion('Liberar Cupo', '¿Estás seguro de liberar este cupo?', (aceptado) => {
         if (aceptado) {
           citas[key].splice(idx, 1);
-          localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
+          guardarDatosLocalesYNube();
           render();
           mostrarToast('Cupo liberado correctamente.', 'success');
         }
@@ -406,42 +489,31 @@
     }
 
     function abrirConfig() {
-      if (!cfg.dias[diaActivoConfig]) {
-        diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
-      }
+      if (!cfg.dias[diaActivoConfig]) diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
       renderTabs();
       document.getElementById('modalConfig').classList.remove('hidden');
       document.getElementById('overlay').classList.remove('hidden');
     }
 
-    function editarDiaRapido(diaNum) {
-      diaActivoConfig = diaNum;
-      abrirConfig();
-    }
+    function editarDiaRapido(diaNum) { diaActivoConfig = diaNum; abrirConfig(); }
 
     function renderTabs() {
       let tabs = document.getElementById('tabsDias');
       tabs.innerHTML = '';
-      
       let keysOrdenadas = Object.keys(cfg.dias).sort((a,b) => Number(a)-Number(b));
-      if (keysOrdenadas.length > 0 && !cfg.dias[diaActivoConfig]) {
-        diaActivoConfig = keysOrdenadas[0];
-      }
+      if (keysOrdenadas.length > 0 && !cfg.dias[diaActivoConfig]) diaActivoConfig = keysOrdenadas[0];
 
       keysOrdenadas.forEach(d => {
         let b = document.createElement('button');
         b.className = `px-5 py-2.5 rounded-2xl text-sm font-extrabold transition whitespace-nowrap shadow-2xs ${d === diaActivoConfig ? 'bg-[#B8B8DA] text-white shadow-md' : 'bg-[#EDEAFB] text-[#6A6AA8] hover:bg-[#D8D4F5]'}`;
         b.innerText = NOMBRES_DIA[d];
-        b.onclick = () => {
-          diaActivoConfig = d;
-          renderTabs();
-        };
+        b.onclick = () => { diaActivoConfig = d; renderTabs(); };
         tabs.appendChild(b);
       });
 
       let panel = document.getElementById('panelDia');
       if (!cfg.dias[diaActivoConfig]) {
-        panel.innerHTML = '<div class="text-center py-10 text-base text-[#8A8AAB] font-medium">No hay días activos configurados. Selecciona abajo y añade uno.</div>';
+        panel.innerHTML = '<div class="text-center py-10 text-base text-[#8A8AAB] font-medium">No hay días activos configurados.</div>';
         return;
       }
 
@@ -453,7 +525,7 @@
           <div class="bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs">
             <div>
               <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Nombre del Grupo</label>
-              <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gNom-${diaActivoConfig}-${i}" value="${g.nombre}" placeholder="Ej. Grupo 1 - 0 a 12 meses">
+              <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gNom-${diaActivoConfig}-${i}" value="${g.nombre}">
             </div>
             <div class="flex items-center gap-3">
               <div class="flex-1">
@@ -465,7 +537,7 @@
                 <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gMax-${diaActivoConfig}-${i}" type="number" min="1" max="30" value="${g.max}">
               </div>
               <div class="flex items-end">
-                <button class="w-11 h-11 rounded-xl bg-[#FFD0D0] hover:bg-[#F9A8A8] text-[#9A2A2A] font-black text-base transition flex items-center justify-center shrink-0 mt-6 shadow-2xs" onclick="borrarGrupoDia('${diaActivoConfig}', ${i})" title="Eliminar grupo">🗑️</button>
+                <button class="w-11 h-11 rounded-xl bg-[#FFD0D0] hover:bg-[#F9A8A8] text-[#9A2A2A] font-black text-base transition flex items-center justify-center shrink-0 mt-6 shadow-2xs" onclick="borrarGrupoDia('${diaActivoConfig}', ${i})">🗑️</button>
               </div>
             </div>
           </div>
@@ -474,85 +546,62 @@
 
       html += `
         <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
-          <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition shadow-2xs" onclick="addGrupoDia('${diaActivoConfig}')">+ Añadir Grupo a este día</button>
-          <button class="px-4.5 py-2.5 rounded-2xl bg-[#FFD0D0]/70 hover:bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-sm transition shadow-2xs" onclick="borrarDia('${diaActivoConfig}')">🗑️ Eliminar Día (${NOMBRES_DIA[diaActivoConfig]})</button>
+          <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="addGrupoDia('${diaActivoConfig}')">+ Añadir Grupo</button>
+          <button class="px-4.5 py-2.5 rounded-2xl bg-[#FFD0D0]/70 hover:bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-sm transition" onclick="borrarDia('${diaActivoConfig}')">🗑️ Eliminar Día</button>
         </div>
       `;
       panel.innerHTML = html;
     }
 
-    function addGrupoDia(diaNum) {
-      cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 });
-      renderTabs();
-    }
-
+    function addGrupoDia(diaNum) { cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 }); renderTabs(); }
     function borrarGrupoDia(diaNum, i) {
-      if (cfg.dias[diaNum].length <= 1) {
-        mostrarToast('Cada día configurado debe tener al menos un grupo.', 'error');
-        return;
-      }
+      if (cfg.dias[diaNum].length <= 1) { mostrarToast('Debe haber al menos un grupo.', 'error'); return; }
       cfg.dias[diaNum].splice(i, 1);
       renderTabs();
     }
-
     function agregarDia() {
       let nuevo = document.getElementById('nuevoDiaSelect').value;
-      if (cfg.dias[nuevo]) {
-        mostrarToast(`El día ${NOMBRES_DIA[nuevo]} ya está configurado.`, 'error');
-        return;
-      }
+      if (cfg.dias[nuevo]) { mostrarToast('El día ya está configurado.', 'error'); return; }
       cfg.dias[nuevo] = [{ id: Date.now(), nombre: `Grupo ${NOMBRES_DIA[nuevo]}`, hora: "09:00", max: 5 }];
       diaActivoConfig = nuevo;
       renderTabs();
-      mostrarToast(`Día ${NOMBRES_DIA[nuevo]} añadido con éxito.`, 'success');
     }
-
     function borrarDia(diaNum) {
-      if (Object.keys(cfg.dias).length <= 1) {
-        mostrarToast('Debes mantener al menos un día activo en el calendario.', 'error');
-        return;
-      }
-      mostrarConfirmacion('Eliminar Día', `¿Estás seguro de eliminar por completo los grupos del día ${NOMBRES_DIA[diaNum]}?`, (aceptado) => {
+      if (Object.keys(cfg.dias).length <= 1) { mostrarToast('Debe mantener al menos un día.', 'error'); return; }
+      mostrarConfirmacion('Eliminar Día', '¿Estás seguro de eliminar este día?', (aceptado) => {
         if (aceptado) {
           delete cfg.dias[diaNum];
-          let remainingKeys = Object.keys(cfg.dias);
-          diaActivoConfig = remainingKeys.length > 0 ? remainingKeys[0] : "1";
+          diaActivoConfig = Object.keys(cfg.dias)[0] || "1";
           renderTabs();
-          mostrarToast('Día eliminado.', 'success');
         }
       });
     }
 
-    function cerrarConfig() {
-      document.getElementById('modalConfig').classList.add('hidden');
-      document.getElementById('overlay').classList.add('hidden');
-    }
-
+    function cerrarConfig() { document.getElementById('modalConfig').classList.add('hidden'); document.getElementById('overlay').classList.add('hidden'); }
     function guardarTodo() {
       Object.keys(cfg.dias).forEach(diaNum => {
         cfg.dias[diaNum].forEach((g, i) => {
-          let nomInput = document.getElementById(`gNom-${diaNum}-${i}`);
-          let horaInput = document.getElementById(`gHora-${diaNum}-${i}`);
-          let maxInput = document.getElementById(`gMax-${diaNum}-${i}`);
-          
-          if (nomInput && horaInput && maxInput) {
-            g.nombre = nomInput.value.trim() || 'Grupo sin nombre';
-            g.hora = horaInput.value || '09:00';
-            g.max = Math.max(1, parseInt(maxInput.value) || 5);
+          let nom = document.getElementById(`gNom-${diaNum}-${i}`);
+          let hora = document.getElementById(`gHora-${diaNum}-${i}`);
+          let max = document.getElementById(`gMax-${diaNum}-${i}`);
+          if (nom && hora && max) {
+            g.nombre = nom.value.trim() || 'Grupo';
+            g.hora = hora.value || '09:00';
+            g.max = Math.max(1, parseInt(max.value) || 5);
           }
         });
       });
-
-      localStorage.setItem('cfg_gniiUS_v3', JSON.stringify(cfg));
+      guardarDatosLocalesYNube();
       cerrarConfig();
       render();
-      mostrarToast('Configuración guardada correctamente.', 'success');
     }
 
-    window.onload = function() {
+    window.onload = async function() {
       render();
+      if (syncCreds.token) {
+        await sincronizarConGitHub(false);
+      }
     };
   </script>
 </body>
 </html>
-
