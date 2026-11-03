@@ -1,0 +1,558 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GniiUS - Calendario Psicológico</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --lila: #B8B8DA;
+    --rosa: #F9A8A8;
+    --amarillo: #FCD58E;
+    --menta: #A8D5BA;
+    --menta2: #8BC9B3;
+    --bg: #FBFAFF;
+  }
+  body {
+    background-color: var(--bg);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #4A4A5A;
+  }
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #F0F0FF; }
+  ::-webkit-scrollbar-thumb { background: #B8B8DA; border-radius: 9999px; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-[#B8B8DA] selection:text-white text-base">
+
+  <!-- Toast Notification Box (Replaces native alerts) -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-md pointer-events-none"></div>
+
+  <!-- Custom Confirm/Prompt Modal Overlay -->
+  <div id="modalConfirmOverlay" class="fixed inset-0 bg-[#4A4A5A]/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full border border-[#EDEAFB] transform transition-all">
+      <h3 id="confirmTitle" class="text-xl font-extrabold text-[#6A6AA8] mb-3">Confirmación</h3>
+      <p id="confirmMessage" class="text-base text-[#5A5A6A] mb-8 leading-relaxed">¿Estás seguro de realizar esta acción?</p>
+      <div class="flex justify-end gap-3.5">
+        <button id="confirmCancelBtn" class="px-5 py-3 rounded-2xl bg-[#EDEAFB] text-[#6A6AA8] font-bold text-base hover:bg-[#D8D4F5] transition">Cancelar</button>
+        <button id="confirmOkBtn" class="px-5 py-3 rounded-2xl bg-[#F9A8A8] text-white font-bold text-base hover:bg-[#F69696] transition shadow-md">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Bar -->
+  <header class="bg-white/90 backdrop-blur-md px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-5 shadow-[0_4px_20px_rgba(184,184,218,0.15)] sticky top-0 z-40 border-b border-[#F0F0FF]">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#B8B8DA] to-[#F9A8A8] flex items-center justify-center shadow-lg text-white font-black text-2xl">
+        G
+      </div>
+      <div>
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight leading-tight">
+          <span style="color:#B8B8DA">Gn</span><span style="color:#F9A8A8">ii</span><span style="color:#FCD58E">i</span><span style="color:#A8D5BA">u</span><span style="color:#7EC8B8">s</span> 
+          <span class="text-sm md:text-base font-semibold text-[#8A8AAB] block md:inline md:ml-2">Centro Psicológico</span>
+        </h1>
+        <div class="text-xs md:text-sm text-[#8A8AAB] font-bold tracking-wide mt-1 flex gap-3">
+          <span class="flex items-center gap-1">● Comprender</span>
+          <span class="flex items-center gap-1">● Acompañar</span>
+          <span class="flex items-center gap-1">● Potenciar</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
+      <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
+        ⚙️ Configurar Días
+      </button>
+      <div class="flex items-center bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-1.5 gap-1.5 shadow-inner">
+        <button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(-1)" title="Semana Anterior">←</button>
+        <button class="px-4 py-2 text-sm font-extrabold text-[#6A6AA8] hover:bg-[#EDEAFB] rounded-xl transition" onclick="irHoy()">Hoy</button>
+        <button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(1)" title="Semana Siguiente">→</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
+    <!-- Week Header Card & Legend -->
+    <div class="bg-gradient-to-r from-[#FBFAFF] via-[#F4F2FF] to-[#ECE8FF] border-2 border-[#EAE6FF] rounded-3xl p-6 md:p-7 mb-8 shadow-[0_6px_25px_rgba(184,184,218,0.18)] flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+      <div>
+        <span class="text-xs md:text-sm font-extrabold uppercase tracking-widest text-[#8A8AAB] block mb-1.5">📅 Semana Activa en Curso</span>
+        <h3 id="tituloSemana" class="text-xl md:text-2xl font-black text-[#6A6AA8]">Cargando calendario...</h3>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#D6F0E0] text-[#2D8A5A] shadow-sm">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> Libre
+        </div>
+        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFF0C0] text-[#8A6A00] shadow-sm">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00]"></span> Casi lleno
+        </div>
+        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFD0D0] text-[#9A2A2A] shadow-sm">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Lleno
+        </div>
+      </div>
+    </div>
+
+    <!-- Days Grid -->
+    <div id="contenedorDias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"></div>
+  </main>
+
+  <!-- Background decorative element -->
+  <div class="fixed right-[-20px] bottom-[-20px] w-56 opacity-[0.06] pointer-events-none select-none z-0 text-[10rem]">🦕</div>
+
+  <!-- Universal Backdrop Overlay -->
+  <div id="overlay" class="fixed inset-0 bg-[#4A4A5A]/40 backdrop-blur-sm z-40 hidden" onclick="cerrarTodo()"></div>
+
+  <!-- Configuration Modal -->
+  <div id="modalConfig" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-2xl bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-2 border-[#EAE6FF] z-50 hidden max-h-[90vh] flex flex-col">
+    <div class="flex justify-between items-center mb-5 border-b-2 border-[#EDEAFB] pb-4">
+      <h3 class="text-xl md:text-2xl font-black text-[#6A6AA8] flex items-center gap-2.5">🦕 Configuración de Grupos GniiUS</h3>
+      <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarConfig()">✕</button>
+    </div>
+    
+    <!-- Day Tabs -->
+    <div id="tabsDias" class="flex gap-2.5 overflow-x-auto pb-3 mb-5 scrollbar-none"></div>
+
+    <!-- Active Day Panel Content -->
+    <div id="panelDia" class="flex-1 overflow-y-auto pr-2 space-y-4 mb-5"></div>
+
+    <!-- Add Day Footer action -->
+    <div class="pt-5 border-t-2 border-[#EDEAFB] flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <select id="nuevoDiaSelect" class="px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] text-base font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]">
+          <option value="0">Domingo</option>
+          <option value="1">Lunes</option>
+          <option value="2">Martes</option>
+          <option value="3">Miércoles</option>
+          <option value="4">Jueves</option>
+          <option value="5">Viernes</option>
+          <option value="6">Sábado</option>
+        </select>
+        <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition shadow-xs" onclick="agregarDia()">+ Añadir día</button>
+      </div>
+      <div class="flex gap-3">
+        <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-extrabold text-base transition shadow-md" onclick="guardarTodo()">Guardar Cambios</button>
+        <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarConfig()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reservation Modal -->
+  <div id="modalNino" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-t-8 border-[#A8D5BA] z-50 hidden">
+    <div class="flex justify-between items-center mb-4">
+      <h3 id="tituloModalNino" class="text-xl font-black text-[#6A6AA8]">Reserva de Cupo</h3>
+      <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarNino()">✕</button>
+    </div>
+    <p class="text-sm text-[#8A8AAB] mb-5 font-medium leading-relaxed">Ingresa los datos del niño(a) y del responsable para asignar el cupo en el grupo seleccionado.</p>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Nombre del Niño / Niña</label>
+        <input id="nombreNino" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. Mateo Pérez">
+      </div>
+      <div>
+        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Teléfono / WhatsApp Papá o Mamá</label>
+        <input id="telNino" type="tel" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. +51 987 654 321">
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3.5 mt-8">
+      <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarNino()">Cancelar</button>
+      <button class="px-6 py-3 rounded-2xl bg-[#A8D5BA] hover:bg-[#96C5A9] text-white font-black text-base transition shadow-md flex items-center gap-2" onclick="confirmarNino()">
+        🦕 Reservar Cupo
+      </button>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    
+    let cfg = JSON.parse(localStorage.getItem('cfg_gniiUS_v3') || 'null') || {
+      dias: {
+        "5": [
+          { id: 1, nombre: "Grupo 1 - 0 a 12 meses", hora: "09:00", max: 5 },
+          { id: 2, nombre: "Grupo 2 - 1 a 2 años", hora: "11:00", max: 5 },
+          { id: 3, nombre: "Grupo 3 - 2 a 3 años", hora: "15:30", max: 5 },
+          { id: 4, nombre: "Grupo 4 - 3 a 4 años", hora: "17:00", max: 5 }
+        ],
+        "6": [
+          { id: 11, nombre: "Grupo 1 Sábado Mañana", hora: "09:30", max: 5 },
+          { id: 12, nombre: "Grupo 2 Sábado Media", hora: "11:30", max: 5 },
+          { id: 13, nombre: "Grupo 3 Sábado Tarde", hora: "15:00", max: 5 },
+          { id: 14, nombre: "Grupo 4 Sábado Tarde Noche", hora: "16:30", max: 5 }
+        ]
+      }
+    };
+    
+    let citas = JSON.parse(localStorage.getItem('citas_gniiUS_v3') || '{}');
+    let semanaBase = new Date();
+    let seleccion = null;
+    let diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
+
+    function mostrarToast(mensaje, tipo = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let bgColor = 'bg-white border-[#B8B8DA] text-[#4A4A5A]';
+      if (tipo === 'success') bgColor = 'bg-[#D6F0E0] border-[#A8D5BA] text-[#2D8A5A]';
+      if (tipo === 'error') bgColor = 'bg-[#FFD0D0] border-[#F9A8A8] text-[#9A2A2A]';
+
+      toast.className = `pointer-events-auto px-5 py-4 rounded-2xl shadow-2xl border-2 text-base font-extrabold flex items-center justify-between gap-4 transform translate-y-2 opacity-0 transition-all duration-300 ${bgColor}`;
+      toast.innerHTML = `<span>${mensaje}</span>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function mostrarConfirmacion(titulo, mensaje, callback) {
+      const overlay = document.getElementById('modalConfirmOverlay');
+      document.getElementById('confirmTitle').innerText = titulo;
+      document.getElementById('confirmMessage').innerText = mensaje;
+      
+      overlay.classList.remove('hidden');
+      
+      const okBtn = document.getElementById('confirmOkBtn');
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+
+      const newOk = okBtn.cloneNode(true);
+      const newCancel = cancelBtn.cloneNode(true);
+      okBtn.parentNode.replaceChild(newOk, okBtn);
+      cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+      newOk.onclick = () => {
+        overlay.classList.add('hidden');
+        callback(true);
+      };
+      newCancel.onclick = () => {
+        overlay.classList.add('hidden');
+        callback(false);
+      };
+    }
+
+    function formatearFecha(d) {
+      return d.toISOString().split('T')[0];
+    }
+
+    function cambiarSemana(dir) {
+      semanaBase.setDate(semanaBase.getDate() + dir * 7);
+      render();
+    }
+
+    function irHoy() {
+      semanaBase = new Date();
+      render();
+    }
+
+    function cerrarTodo() {
+      cerrarConfig();
+      cerrarNino();
+      document.getElementById('modalConfirmOverlay').classList.add('hidden');
+    }
+
+    function render() {
+      let inicioSem = new Date(semanaBase);
+      inicioSem.setDate(inicioSem.getDate() - inicioSem.getDay());
+      let finSem = new Date(inicioSem);
+      finSem.setDate(finSem.getDate() + 6);
+
+      document.getElementById('tituloSemana').innerText = 
+        `${inicioSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})} — ${finSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})}`;
+
+      let cont = document.getElementById('contenedorDias');
+      cont.innerHTML = '';
+
+      let diasConGruposCount = 0;
+
+      for (let i = 0; i < 7; i++) {
+        let fecha = new Date(inicioSem);
+        fecha.setDate(inicioSem.getDate() + i);
+        let diaNum = String(fecha.getDay());
+        
+        if (!cfg.dias[diaNum]) continue;
+        diasConGruposCount++;
+        let gruposDelDia = cfg.dias[diaNum];
+        let fechaStr = formatearFecha(fecha);
+
+        let diaCard = document.createElement('div');
+        diaCard.className = 'bg-white rounded-3xl p-5 md:p-6 shadow-[0_6px_25px_rgba(184,184,218,0.12)] border-2 border-[#F0F0FF] flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-xl';
+        
+        diaCard.innerHTML = `
+          <div class="flex justify-between items-center border-b-2 border-[#EDEAFB] pb-3.5">
+            <h4 class="font-black text-[#6A6AA8] text-base md:text-lg flex items-center gap-2">
+              📅 ${NOMBRES_DIA[fecha.getDay()]} <span class="text-xs md:text-sm font-bold text-[#8A8AAB] bg-[#FBFAFF] px-2.5 py-0.5 rounded-full border border-[#EDEAFB]">${fecha.toLocaleDateString('es-PE', {day: 'numeric', month: 'short'})}</span>
+            </h4>
+            <button class="px-3.5 py-1.5 text-xs md:text-sm font-extrabold rounded-xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] transition shadow-2xs" onclick="editarDiaRapido('${diaNum}')">✏️ Editar</button>
+          </div>
+          <div id="grupos-${fechaStr}" class="space-y-4 flex-1"></div>
+        `;
+        cont.appendChild(diaCard);
+
+        let gruposDiv = diaCard.querySelector(`#grupos-${fechaStr}`);
+        
+        gruposDelDia.forEach(g => {
+          let key = `${fechaStr}-${g.id}`;
+          let lista = citas[key] || [];
+          let ocup = lista.length;
+          let estado = ocup >= g.max ? 'bg-[#FFD0D0] text-[#9A2A2A]' : ocup >= g.max - 1 ? 'bg-[#FFF0C0] text-[#8A6A00]' : 'bg-[#D6F0E0] text-[#2D8A5A]';
+          let estadoTxt = ocup >= g.max ? 'LLENO' : `${g.max - ocup} libres`;
+
+          let grupoCard = document.createElement('div');
+          grupoCard.className = `rounded-2xl p-4.5 border-l-6 bg-[#FBFAFF] border-2 border-[#EDEAFB] relative overflow-hidden transition-all hover:shadow-md ${ocup >= g.max ? 'border-l-[#F9A8A8] bg-[#FFF8F8]' : 'border-l-[#B8B8DA]'}`;
+          
+          let ninosHtml = lista.map((n, idx) => `
+            <div class="bg-white border-2 border-[#EDEAFB] px-3.5 py-2.5 rounded-xl flex justify-between items-center text-sm shadow-2xs mt-2">
+              <span class="font-extrabold text-[#4A4A5A] truncate mr-2" title="${n.nombre} (${n.tel})">👶 <b>${n.nombre}</b> <span class="text-[#8A8AAB] font-medium text-xs block md:inline">(${n.tel})</span></span>
+              <button class="w-7 h-7 rounded-lg bg-[#FFD0D0]/50 hover:bg-[#FFD0D0] text-red-600 font-black flex items-center justify-center transition shrink-0" onclick="eliminarNino('${key}', ${idx})" title="Liberar cupo">✕</button>
+            </div>
+          `).join('') || '<div class="text-xs text-[#8A8AAB] font-medium italic mt-2 py-1 px-2 bg-white/60 rounded-lg border border-[#EDEAFB] text-center">🦕 Sin reservas aún</div>';
+
+          grupoCard.innerHTML = `
+            <div class="flex justify-between items-start gap-2">
+              <span class="font-black text-sm md:text-base text-[#4A4A5A] leading-snug">${g.nombre}</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow-2xs ${estado}">${estadoTxt}</span>
+            </div>
+            <div class="text-xs md:text-sm text-[#8A8AAB] font-bold mt-1.5 flex items-center gap-2">
+              <span>⏰ ${g.hora}</span> <span>•</span> <span>Máx: ${g.max} cupos</span>
+            </div>
+            <div class="mt-3 space-y-1.5">${ninosHtml}</div>
+            <button class="mt-4 w-full py-3 px-4 rounded-2xl font-extrabold text-sm transition shadow-sm flex items-center justify-center gap-2 ${ocup >= g.max ? 'bg-[#EDEAFB] text-[#8A8AAB] cursor-not-allowed' : 'bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white'}" ${ocup >= g.max ? 'disabled' : ''} onclick="abrirNino('${key}', '${g.nombre} (${fechaStr} - ${g.hora})')">
+              ${ocup >= g.max ? 'Cupo Completo' : '+ Reservar Cupo'}
+            </button>
+          `;
+          gruposDiv.appendChild(grupoCard);
+        });
+      }
+
+      if (diasConGruposCount === 0) {
+        cont.innerHTML = `
+          <div class="col-span-full py-16 text-center bg-white rounded-3xl border-2 border-[#EDEAFB] p-8 shadow-sm">
+            <div class="text-6xl mb-4">🦕</div>
+            <h4 class="text-xl font-black text-[#6A6AA8]">No hay grupos configurados para esta semana</h4>
+            <p class="text-sm text-[#8A8AAB] font-medium mt-1.5 mb-6 max-w-md mx-auto">Haz clic en Configurar Días para activar grupos y horarios de atención personalizados.</p>
+            <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] text-white font-extrabold text-base hover:bg-[#A8A8D0] transition shadow-md" onclick="abrirConfig()">Abrir Configuración</button>
+          </div>
+        `;
+      }
+    }
+
+    function abrirNino(key, titulo) {
+      seleccion = key;
+      document.getElementById('tituloModalNino').innerText = 'Reservar: ' + titulo;
+      document.getElementById('modalNino').classList.remove('hidden');
+      document.getElementById('overlay').classList.remove('hidden');
+      document.getElementById('nombreNino').focus();
+    }
+
+    function cerrarNino() {
+      document.getElementById('modalNino').classList.add('hidden');
+      document.getElementById('overlay').classList.add('hidden');
+      document.getElementById('nombreNino').value = '';
+      document.getElementById('telNino').value = '';
+      seleccion = null;
+    }
+
+    function confirmarNino() {
+      let nombre = document.getElementById('nombreNino').value.trim();
+      let tel = document.getElementById('telNino').value.trim();
+      
+      if (!nombre) {
+        mostrarToast('Por favor, ingresa el nombre del niño o niña.', 'error');
+        document.getElementById('nombreNino').focus();
+        return;
+      }
+
+      let grupoId = seleccion.split('-').pop();
+      let fechaCita = seleccion.substring(0, 10);
+      let diaNum = String(new Date(fechaCita + 'T00:00:00').getDay());
+      let max = 5;
+
+      try {
+        max = cfg.dias[diaNum]?.find(g => String(g.id) === String(grupoId))?.max || 5;
+      } catch (e) {}
+
+      if (!citas[seleccion]) citas[seleccion] = [];
+      if (citas[seleccion].length >= max) {
+        mostrarToast('Este grupo ya se encuentra lleno.', 'error');
+        return;
+      }
+
+      citas[seleccion].push({ nombre, tel: tel || 'Sin teléfono' });
+      localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
+      
+      cerrarNino();
+      render();
+      mostrarToast('¡Reserva registrada con éxito! 🦕', 'success');
+    }
+
+    function eliminarNino(key, idx) {
+      mostrarConfirmacion('Liberar Cupo', '¿Estás seguro de liberar este cupo?', (aceptado) => {
+        if (aceptado) {
+          citas[key].splice(idx, 1);
+          localStorage.setItem('citas_gniiUS_v3', JSON.stringify(citas));
+          render();
+          mostrarToast('Cupo liberado correctamente.', 'success');
+        }
+      });
+    }
+
+    function abrirConfig() {
+      if (!cfg.dias[diaActivoConfig]) {
+        diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
+      }
+      renderTabs();
+      document.getElementById('modalConfig').classList.remove('hidden');
+      document.getElementById('overlay').classList.remove('hidden');
+    }
+
+    function editarDiaRapido(diaNum) {
+      diaActivoConfig = diaNum;
+      abrirConfig();
+    }
+
+    function renderTabs() {
+      let tabs = document.getElementById('tabsDias');
+      tabs.innerHTML = '';
+      
+      let keysOrdenadas = Object.keys(cfg.dias).sort((a,b) => Number(a)-Number(b));
+      if (keysOrdenadas.length > 0 && !cfg.dias[diaActivoConfig]) {
+        diaActivoConfig = keysOrdenadas[0];
+      }
+
+      keysOrdenadas.forEach(d => {
+        let b = document.createElement('button');
+        b.className = `px-5 py-2.5 rounded-2xl text-sm font-extrabold transition whitespace-nowrap shadow-2xs ${d === diaActivoConfig ? 'bg-[#B8B8DA] text-white shadow-md' : 'bg-[#EDEAFB] text-[#6A6AA8] hover:bg-[#D8D4F5]'}`;
+        b.innerText = NOMBRES_DIA[d];
+        b.onclick = () => {
+          diaActivoConfig = d;
+          renderTabs();
+        };
+        tabs.appendChild(b);
+      });
+
+      let panel = document.getElementById('panelDia');
+      if (!cfg.dias[diaActivoConfig]) {
+        panel.innerHTML = '<div class="text-center py-10 text-base text-[#8A8AAB] font-medium">No hay días activos configurados. Selecciona abajo y añade uno.</div>';
+        return;
+      }
+
+      let grupos = cfg.dias[diaActivoConfig];
+      let html = `<div class="text-sm font-black text-[#6A6AA8] mb-3 uppercase tracking-wider">Grupos programados para los ${NOMBRES_DIA[diaActivoConfig]}s (${grupos.length})</div>`;
+      
+      grupos.forEach((g, i) => {
+        html += `
+          <div class="bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs">
+            <div>
+              <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Nombre del Grupo</label>
+              <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gNom-${diaActivoConfig}-${i}" value="${g.nombre}" placeholder="Ej. Grupo 1 - 0 a 12 meses">
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex-1">
+                <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Hora</label>
+                <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gHora-${diaActivoConfig}-${i}" type="time" value="${g.hora}">
+              </div>
+              <div class="w-32">
+                <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Máx Cupos</label>
+                <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gMax-${diaActivoConfig}-${i}" type="number" min="1" max="30" value="${g.max}">
+              </div>
+              <div class="flex items-end">
+                <button class="w-11 h-11 rounded-xl bg-[#FFD0D0] hover:bg-[#F9A8A8] text-[#9A2A2A] font-black text-base transition flex items-center justify-center shrink-0 mt-6 shadow-2xs" onclick="borrarGrupoDia('${diaActivoConfig}', ${i})" title="Eliminar grupo">🗑️</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+          <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition shadow-2xs" onclick="addGrupoDia('${diaActivoConfig}')">+ Añadir Grupo a este día</button>
+          <button class="px-4.5 py-2.5 rounded-2xl bg-[#FFD0D0]/70 hover:bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-sm transition shadow-2xs" onclick="borrarDia('${diaActivoConfig}')">🗑️ Eliminar Día (${NOMBRES_DIA[diaActivoConfig]})</button>
+        </div>
+      `;
+      panel.innerHTML = html;
+    }
+
+    function addGrupoDia(diaNum) {
+      cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 });
+      renderTabs();
+    }
+
+    function borrarGrupoDia(diaNum, i) {
+      if (cfg.dias[diaNum].length <= 1) {
+        mostrarToast('Cada día configurado debe tener al menos un grupo.', 'error');
+        return;
+      }
+      cfg.dias[diaNum].splice(i, 1);
+      renderTabs();
+    }
+
+    function agregarDia() {
+      let nuevo = document.getElementById('nuevoDiaSelect').value;
+      if (cfg.dias[nuevo]) {
+        mostrarToast(`El día ${NOMBRES_DIA[nuevo]} ya está configurado.`, 'error');
+        return;
+      }
+      cfg.dias[nuevo] = [{ id: Date.now(), nombre: `Grupo ${NOMBRES_DIA[nuevo]}`, hora: "09:00", max: 5 }];
+      diaActivoConfig = nuevo;
+      renderTabs();
+      mostrarToast(`Día ${NOMBRES_DIA[nuevo]} añadido con éxito.`, 'success');
+    }
+
+    function borrarDia(diaNum) {
+      if (Object.keys(cfg.dias).length <= 1) {
+        mostrarToast('Debes mantener al menos un día activo en el calendario.', 'error');
+        return;
+      }
+      mostrarConfirmacion('Eliminar Día', `¿Estás seguro de eliminar por completo los grupos del día ${NOMBRES_DIA[diaNum]}?`, (aceptado) => {
+        if (aceptado) {
+          delete cfg.dias[diaNum];
+          let remainingKeys = Object.keys(cfg.dias);
+          diaActivoConfig = remainingKeys.length > 0 ? remainingKeys[0] : "1";
+          renderTabs();
+          mostrarToast('Día eliminado.', 'success');
+        }
+      });
+    }
+
+    function cerrarConfig() {
+      document.getElementById('modalConfig').classList.add('hidden');
+      document.getElementById('overlay').classList.add('hidden');
+    }
+
+    function guardarTodo() {
+      Object.keys(cfg.dias).forEach(diaNum => {
+        cfg.dias[diaNum].forEach((g, i) => {
+          let nomInput = document.getElementById(`gNom-${diaNum}-${i}`);
+          let horaInput = document.getElementById(`gHora-${diaNum}-${i}`);
+          let maxInput = document.getElementById(`gMax-${diaNum}-${i}`);
+          
+          if (nomInput && horaInput && maxInput) {
+            g.nombre = nomInput.value.trim() || 'Grupo sin nombre';
+            g.hora = horaInput.value || '09:00';
+            g.max = Math.max(1, parseInt(maxInput.value) || 5);
+          }
+        });
+      });
+
+      localStorage.setItem('cfg_gniiUS_v3', JSON.stringify(cfg));
+      cerrarConfig();
+      render();
+      mostrarToast('Configuración guardada correctamente.', 'success');
+    }
+
+    window.onload = function() {
+      render();
+    };
+  </script>
+</body>
+</html>
+```
