@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,598 +6,517 @@
 <title>GniiUS - Calendario Psicológico</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  :root {
-    --lila: #B8B8DA;
-    --rosa: #F9A8A8;
-    --amarillo: #FCD58E;
-    --menta: #A8D5BA;
-    --menta2: #8BC9B3;
-    --bg: #FBFAFF;
-  }
-  body {
-    background-color: var(--bg);
-    font-family: 'Inter', system-ui, sans-serif;
-    color: #4A4A5A;
-  }
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: #F0F0FF; }
-  ::-webkit-scrollbar-thumb { background: #B8B8DA; border-radius: 9999px; }
+:root {
+--lila: #B8B8DA;
+--rosa: #F9A8A8;
+--amarillo: #FCD58E;
+--menta: #A8D5BA;
+--menta2: #8BC9B3;
+--bg: #FBFAFF;
+}
+body {
+background-color: var(--bg);
+font-family: 'Inter', system-ui, sans-serif;
+color: #4A4A5A;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #F0F0FF; }
+::-webkit-scrollbar-thumb { background: #B8B8DA; border-radius: 9999px; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-[#B8B8DA] selection:text-white text-base">
-
-  <!-- Toast Notification Box -->
-  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-md pointer-events-none"></div>
-
-  <!-- Custom Confirm Modal -->
-  <div id="modalConfirmOverlay" class="fixed inset-0 bg-[#4A4A5A]/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full border border-[#EDEAFB]">
-      <h3 id="confirmTitle" class="text-xl font-extrabold text-[#6A6AA8] mb-3">Confirmación</h3>
-      <p id="confirmMessage" class="text-base text-[#5A5A6A] mb-8 leading-relaxed">¿Estás seguro de realizar esta acción?</p>
-      <div class="flex justify-end gap-3.5">
-        <button id="confirmCancelBtn" class="px-5 py-3 rounded-2xl bg-[#EDEAFB] text-[#6A6AA8] font-bold text-base hover:bg-[#D8D4F5] transition">Cancelar</button>
-        <button id="confirmOkBtn" class="px-5 py-3 rounded-2xl bg-[#F9A8A8] text-white font-bold text-base hover:bg-[#F69696] transition shadow-md">Aceptar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase Setup Modal (For GitHub Pages) -->
-  <div id="modalFirebaseSetup" class="fixed inset-0 bg-[#4A4A5A]/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-7 md:p-8 shadow-2xl max-w-lg w-full border-2 border-[#EAE6FF] max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-black text-[#6A6AA8] flex items-center gap-2">🔥 Configurar Firebase</h3>
-        <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarFirebaseSetup()">✕</button>
-      </div>
-      <p class="text-sm text-[#8A8AAB] mb-5 font-medium leading-relaxed">
-        Como estás ejecutando esta app en GitHub Pages, pega tu objeto de configuración de Firebase (puedes obtenerlo en la consola de Firebase en Configuración de Proyecto > General > SDK de Firebase).
-      </p>
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-extrabold text-[#6A6AA8] mb-1">Objeto de Configuración JSON o appId</label>
-          <textarea id="inputFirebaseConfigJson" rows="6" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] font-mono text-xs text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" placeholder='{
-  "apiKey": "AIzaSy...",
-  "authDomain": "tu-proyecto.firebaseapp.com",
-  "projectId": "tu-proyecto",
-  "storageBucket": "tu-proyecto.appspot.com",
-  "messagingSenderId": "123456...",
-  "appId": "1:123456..."
+​<!-- Toast Notification Box -->
+<div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-md pointer-events-none"></div>
+​<!-- Custom Confirm Modal -->
+<div id="modalConfirmOverlay" class="fixed inset-0 bg-[#4A4A5A]/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+<div class="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full border border-[#EDEAFB]">
+<h3 id="confirmTitle" class="text-xl font-extrabold text-[#6A6AA8] mb-3">Confirmación</h3>
+<p id="confirmMessage" class="text-base text-[#5A5A6A] mb-8 leading-relaxed">¿Estás seguro de realizar esta acción?</p>
+<div class="flex justify-end gap-3.5">
+<button id="confirmCancelBtn" class="px-5 py-3 rounded-2xl bg-[#EDEAFB] text-[#6A6AA8] font-bold text-base hover:bg-[#D8D4F5] transition">Cancelar</button>
+<button id="confirmOkBtn" class="px-5 py-3 rounded-2xl bg-[#F9A8A8] text-white font-bold text-base hover:bg-[#F69696] transition shadow-md">Aceptar</button>
+</div>
+</div>
+</div>
+​<!-- Firebase Setup Modal -->
+<div id="modalFirebaseSetup" class="fixed inset-0 bg-[#4A4A5A]/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+<div class="bg-white rounded-3xl p-7 md:p-8 shadow-2xl max-w-lg w-full border-2 border-[#EAE6FF] max-h-[90vh] overflow-y-auto">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-xl font-black text-[#6A6AA8] flex items-center gap-2">🔥 Configurar Firebase</h3>
+<button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarFirebaseSetup()">✕</button>
+</div>
+<p class="text-sm text-[#8A8AAB] mb-4 font-medium leading-relaxed">
+Pega tu objeto de configuración de Firebase (copiado de la consola de Firebase en Configuración de Proyecto > General > SDK de Firebase).
+</p>
+<div class="space-y-4">
+<div>
+<label class="block text-xs font-extrabold text-[#6A6AA8] mb-1">Objeto JSON de Firebase</label>
+<textarea id="inputFirebaseConfigJson" rows="6" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] font-mono text-xs text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" placeholder='{
+"apiKey": "AIzaSy...",
+"authDomain": "tu-proyecto.firebaseapp.com",
+"projectId": "tu-proyecto",
+"storageBucket": "tu-proyecto.appspot.com",
+"messagingSenderId": "123456...",
+"appId": "1:123456..."
 }'></textarea>
-        </div>
-      </div>
-      <div class="flex justify-end gap-3.5 mt-6">
-        <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="cerrarFirebaseSetup()">Cancelar</button>
-        <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black text-sm transition shadow-md" onclick="guardarFirebaseConfigManual()">Conectar Firebase</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Top Bar -->
-  <header class="bg-white/90 backdrop-blur-md px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-5 shadow-[0_4px_20px_rgba(184,184,218,0.15)] sticky top-0 z-40 border-b border-[#F0F0FF]">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#B8B8DA] to-[#F9A8A8] flex items-center justify-center shadow-lg text-white font-black text-2xl">
-        G
-      </div>
-      <div>
-        <h1 class="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-          <span style="color:#B8B8DA">Gn</span><span style="color:#F9A8A8">ii</span><span style="color:#FCD58E">i</span><span style="color:#A8D5BA">u</span><span style="color:#7EC8B8">s</span> 
-          <span class="text-sm md:text-base font-semibold text-[#8A8AAB] block md:inline md:ml-2">Centro Psicológico</span>
-        </h1>
-        <div class="text-xs md:text-sm text-[#8A8AAB] font-bold tracking-wide mt-1 flex gap-3">
-          <span class="flex items-center gap-1">● Comprender</span>
-          <span class="flex items-center gap-1">● Acompañar</span>
-          <span class="flex items-center gap-1">● Potenciar</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
-      <div id="syncStatusBadge" onclick="abrirFirebaseSetup()" class="px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition" title="Haz clic para configurar Firebase">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Conectar Firebase...
-      </div>
-      <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
-        ⚙️ Configurar Días
-      </button>
-      <div class="flex items-center bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-1.5 gap-1.5 shadow-inner">
-        <button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(-1)" title="Semana Anterior">←</button>
-        <button class="px-4 py-2 text-sm font-extrabold text-[#6A6AA8] hover:bg-[#EDEAFB] rounded-xl transition" onclick="irHoy()">Hoy</button>
-        <button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(1)" title="Semana Siguiente">→</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content Area -->
-  <main class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
-    <!-- Week Header Card & Legend -->
-    <div class="bg-gradient-to-r from-[#FBFAFF] via-[#F4F2FF] to-[#ECE8FF] border-2 border-[#EAE6FF] rounded-3xl p-6 md:p-7 mb-8 shadow-[0_6px_25px_rgba(184,184,218,0.18)] flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
-      <div>
-        <span class="text-xs md:text-sm font-extrabold uppercase tracking-widest text-[#8A8AAB] block mb-1.5">📅 Semana Activa en Curso</span>
-        <h3 id="tituloSemana" class="text-xl md:text-2xl font-black text-[#6A6AA8]">Cargando calendario...</h3>
-      </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#D6F0E0] text-[#2D8A5A] shadow-sm">
-          <span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> Libre
-        </div>
-        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFF0C0] text-[#8A6A00] shadow-sm">
-          <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00]"></span> Casi lleno
-        </div>
-        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFD0D0] text-[#9A2A2A] shadow-sm">
-          <span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Lleno
-        </div>
-      </div>
-    </div>
-
-    <!-- Days Grid -->
-    <div id="contenedorDias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"></div>
-  </main>
-
-  <div class="fixed right-[-20px] bottom-[-20px] w-56 opacity-[0.06] pointer-events-none select-none z-0 text-[10rem]">🦕</div>
-
-  <!-- Universal Backdrop Overlay -->
-  <div id="overlay" class="fixed inset-0 bg-[#4A4A5A]/40 backdrop-blur-sm z-40 hidden" onclick="cerrarTodo()"></div>
-
-  <!-- Configuration Modal -->
-  <div id="modalConfig" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-2xl bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-2 border-[#EAE6FF] z-50 hidden max-h-[90vh] flex flex-col">
-    <div class="flex justify-between items-center mb-5 border-b-2 border-[#EDEAFB] pb-4">
-      <h3 class="text-xl md:text-2xl font-black text-[#6A6AA8] flex items-center gap-2.5">🦕 Configuración de Grupos GniiUS</h3>
-      <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarConfig()">✕</button>
-    </div>
-    
-    <div id="tabsDias" class="flex gap-2.5 overflow-x-auto pb-3 mb-5 scrollbar-none"></div>
-    <div id="panelDia" class="flex-1 overflow-y-auto pr-2 space-y-4 mb-5"></div>
-
-    <div class="pt-5 border-t-2 border-[#EDEAFB] flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <select id="nuevoDiaSelect" class="px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] text-base font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]">
-          <option value="0">Domingo</option><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option>
-        </select>
-        <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition shadow-xs" onclick="agregarDia()">+ Añadir día</button>
-      </div>
-      <div class="flex gap-3">
-        <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-extrabold text-base transition shadow-md" onclick="guardarTodo()">Guardar Cambios</button>
-        <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarConfig()">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reservation Modal -->
-  <div id="modalNino" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-t-8 border-[#A8D5BA] z-50 hidden">
-    <div class="flex justify-between items-center mb-4">
-      <h3 id="tituloModalNino" class="text-xl font-black text-[#6A6AA8]">Reserva de Cupo</h3>
-      <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarNino()">✕</button>
-    </div>
-    <p class="text-sm text-[#8A8AAB] mb-5 font-medium leading-relaxed">Ingresa los datos del niño(a) y del responsable para asignar el cupo en el grupo seleccionado.</p>
-    
-    <div class="space-y-4">
-      <div>
-        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Nombre del Niño / Niña</label>
-        <input id="nombreNino" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. Mateo Pérez">
-      </div>
-      <div>
-        <label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Teléfono / WhatsApp Papá o Mamá</label>
-        <input id="telNino" type="tel" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. +51 987 654 321">
-      </div>
-    </div>
-
-    <div class="flex justify-end gap-3.5 mt-8">
-      <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarNino()">Cancelar</button>
-      <button class="px-6 py-3 rounded-2xl bg-[#A8D5BA] hover:bg-[#96C5A9] text-white font-black text-base transition shadow-md flex items-center gap-2" onclick="confirmarNino()">
-        🦕 Reservar Cupo
-      </button>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    
-    let defaultConfig = {
-      dias: {
-        "5": [
-          { id: 1, nombre: "Grupo 1 - 0 a 12 meses", hora: "09:00", max: 5 },
-          { id: 2, nombre: "Grupo 2 - 1 a 2 años", hora: "11:00", max: 5 },
-          { id: 3, nombre: "Grupo 3 - 2 a 3 años", hora: "15:30", max: 5 },
-          { id: 4, nombre: "Grupo 4 - 3 a 4 años", hora: "17:00", max: 5 }
-        ],
-        "6": [
-          { id: 11, nombre: "Grupo 1 Sábado Mañana", hora: "09:30", max: 5 },
-          { id: 12, nombre: "Grupo 2 Sábado Media", hora: "11:30", max: 5 },
-          { id: 13, nombre: "Grupo 3 Sábado Tarde", hora: "15:00", max: 5 },
-          { id: 14, nombre: "Grupo 4 Sábado Tarde Noche", hora: "16:30", max: 5 }
-        ]
-      }
-    };
-    
-    let cfg = JSON.parse(JSON.stringify(defaultConfig));
-    let citas = {};
-    let semanaBase = new Date();
-    let seleccion = null;
-    let diaActivoConfig = "5";
-
-    let app, db, auth;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : (localStorage.getItem('gniius_firebase_appid') || 'gniius-github-app');
-
-    function mostrarToast(mensaje, tipo = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      let bgColor = 'bg-white border-[#B8B8DA] text-[#4A4A5A]';
-      if (tipo === 'success') bgColor = 'bg-[#D6F0E0] border-[#A8D5BA] text-[#2D8A5A]';
-      if (tipo === 'error') bgColor = 'bg-[#FFD0D0] border-[#F9A8A8] text-[#9A2A2A]';
-
-      toast.className = `pointer-events-auto px-5 py-4 rounded-2xl shadow-2xl border-2 text-base font-extrabold flex items-center justify-between gap-4 transform translate-y-2 opacity-0 transition-all duration-300 ${bgColor}`;
-      toast.innerHTML = `<span>${mensaje}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-      setTimeout(() => {
-        toast.classList.add('translate-y-2', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
-    }
-
-    function mostrarConfirmacion(titulo, mensaje, callback) {
-      const overlay = document.getElementById('modalConfirmOverlay');
-      document.getElementById('confirmTitle').innerText = titulo;
-      document.getElementById('confirmMessage').innerText = mensaje;
-      overlay.classList.remove('hidden');
-      
-      const okBtn = document.getElementById('confirmOkBtn');
-      const cancelBtn = document.getElementById('confirmCancelBtn');
-      const newOk = okBtn.cloneNode(true);
-      const newCancel = cancelBtn.cloneNode(true);
-      okBtn.parentNode.replaceChild(newOk, okBtn);
-      cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
-
-      newOk.onclick = () => { overlay.classList.add('hidden'); callback(true); };
-      newCancel.onclick = () => { overlay.classList.add('hidden'); callback(false); };
-    }
-
-    async function guardarEnNube() {
-      if (!auth || !auth.currentUser) return;
-      try {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
-        await setDoc(docRef, { cfg, citas, updatedAt: new Date().toISOString() });
-      } catch (e) {
-        console.error("Error guardando en Firestore:", e);
-      }
-    }
-
-    async function initFirebaseAndData() {
-      let firebaseConfig = {};
-      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        try { firebaseConfig = JSON.parse(__firebase_config); } catch(e){}
-      } else {
-        const savedCfg = localStorage.getItem('gniius_firebase_config');
-        if (savedCfg) {
-          try { firebaseConfig = JSON.parse(savedCfg); } catch(e){}
-        }
-      }
-
-      if (!firebaseConfig || !firebaseConfig.apiKey) {
-        const badge = document.getElementById('syncStatusBadge');
-        badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> ⚙️ Configurar Firebase`;
-        render();
-        return;
-      }
-
-      try {
-        app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-
-        const user = auth.currentUser;
-        if (!user) return;
-
-        const badge = document.getElementById('syncStatusBadge');
-        badge.className = "px-3.5 py-2 rounded-2xl bg-[#D6F0E0] text-[#2D8A5A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Sincronizada`;
-
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
-        
-        onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.cfg) cfg = data.cfg;
-            if (data.citas) citas = data.citas;
-            render();
-          } else {
-            guardarEnNube();
-            render();
-          }
-        }, (error) => {
-          console.error("Snapshot error:", error);
-        });
-
-      } catch (e) {
-        console.error("Auth/Firestore connection error:", e);
-        const badge = document.getElementById('syncStatusBadge');
-        badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> ⚠️ Error de Conexión`;
-        render();
-      }
-    }
-
-    window.abrirFirebaseSetup = function() {
-      document.getElementById('modalFirebaseSetup').classList.remove('hidden');
-    }
-    window.cerrarFirebaseSetup = function() {
-      document.getElementById('modalFirebaseSetup').classList.add('hidden');
-    }
-    window.guardarFirebaseConfigManual = function() {
-      let txt = document.getElementById('inputFirebaseConfigJson').value.trim();
-      if (!txt) return mostrarToast('Ingresa la configuración', 'error');
-      try {
-        let parsed = JSON.parse(txt);
-        if (!parsed.apiKey) throw new Error();
-        localStorage.setItem('gniius_firebase_config', JSON.stringify(parsed));
-        if (parsed.projectId) localStorage.setItem('gniius_firebase_appid', parsed.projectId);
-        cerrarFirebaseSetup();
-        mostrarToast('Configuración guardada. Recargando...', 'success');
-        setTimeout(() => location.reload(), 1000);
-      } catch (e) {
-        mostrarToast('JSON inválido o falta apiKey', 'error');
-      }
-    }
-
-    function formatearFecha(d) { return d.toISOString().split('T')[0]; }
-    window.cambiarSemana = function(dir) { semanaBase.setDate(semanaBase.getDate() + dir * 7); render(); }
-    window.irHoy = function() { semanaBase = new Date(); render(); }
-    window.cerrarTodo = function() { cerrarConfig(); cerrarNino(); cerrarFirebaseSetup(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
-
-    function render() {
-      let inicioSem = new Date(semanaBase);
-      inicioSem.setDate(inicioSem.getDate() - inicioSem.getDay());
-      let finSem = new Date(inicioSem);
-      finSem.setDate(finSem.getDate() + 6);
-
-      document.getElementById('tituloSemana').innerText = 
-        `${inicioSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})} — ${finSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})}`;
-
-      let cont = document.getElementById('contenedorDias');
-      cont.innerHTML = '';
-      let diasConGruposCount = 0;
-
-      for (let i = 0; i < 7; i++) {
-        let fecha = new Date(inicioSem);
-        fecha.setDate(inicioSem.getDate() + i);
-        let diaNum = String(fecha.getDay());
-        if (!cfg.dias[diaNum]) continue;
-        diasConGruposCount++;
-        let gruposDelDia = cfg.dias[diaNum];
-        let fechaStr = formatearFecha(fecha);
-
-        let diaCard = document.createElement('div');
-        diaCard.className = 'bg-white rounded-3xl p-5 md:p-6 shadow-[0_6px_25px_rgba(184,184,218,0.12)] border-2 border-[#F0F0FF] flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-xl';
-        diaCard.innerHTML = `
-          <div class="flex justify-between items-center border-b-2 border-[#EDEAFB] pb-3.5">
-            <h4 class="font-black text-[#6A6AA8] text-base md:text-lg flex items-center gap-2">
-              📅 ${NOMBRES_DIA[fecha.getDay()]} <span class="text-xs md:text-sm font-bold text-[#8A8AAB] bg-[#FBFAFF] px-2.5 py-0.5 rounded-full border border-[#EDEAFB]">${fecha.toLocaleDateString('es-PE', {day: 'numeric', month: 'short'})}</span>
-            </h4>
-            <button class="px-3.5 py-1.5 text-xs md:text-sm font-extrabold rounded-xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] transition" onclick="editarDiaRapido('${diaNum}')">✏️ Editar</button>
-          </div>
-          <div id="grupos-${fechaStr}" class="space-y-4 flex-1"></div>
-        `;
-        cont.appendChild(diaCard);
-
-        let gruposDiv = diaCard.querySelector(`#grupos-${fechaStr}`);
-        gruposDelDia.forEach(g => {
-          let key = `${fechaStr}-${g.id}`;
-          let lista = citas[key] || [];
-          let ocup = lista.length;
-          let estado = ocup >= g.max ? 'bg-[#FFD0D0] text-[#9A2A2A]' : ocup >= g.max - 1 ? 'bg-[#FFF0C0] text-[#8A6A00]' : 'bg-[#D6F0E0] text-[#2D8A5A]';
-          let estadoTxt = ocup >= g.max ? 'LLENO' : `${g.max - ocup} libres`;
-
-          let grupoCard = document.createElement('div');
-          grupoCard.className = `rounded-2xl p-4.5 border-l-6 bg-[#FBFAFF] border-2 border-[#EDEAFB] relative overflow-hidden transition-all hover:shadow-md ${ocup >= g.max ? 'border-l-[#F9A8A8] bg-[#FFF8F8]' : 'border-l-[#B8B8DA]'}`;
-          
-          let ninosHtml = lista.map((n, idx) => `
-            <div class="bg-white border-2 border-[#EDEAFB] px-3.5 py-2.5 rounded-xl flex justify-between items-center text-sm shadow-2xs mt-2">
-              <span class="font-extrabold text-[#4A4A5A] truncate mr-2" title="${n.nombre} (${n.tel})">👶 <b>${n.nombre}</b> <span class="text-[#8A8AAB] font-medium text-xs block md:inline">(${n.tel})</span></span>
-              <button class="w-7 h-7 rounded-lg bg-[#FFD0D0]/50 hover:bg-[#FFD0D0] text-red-600 font-black flex items-center justify-center transition shrink-0" onclick="eliminarNino('${key}', ${idx})" title="Liberar cupo">✕</button>
-            </div>
-          `).join('') || '<div class="text-xs text-[#8A8AAB] font-medium italic mt-2 py-1 px-2 bg-white/60 rounded-lg border border-[#EDEAFB] text-center">🦕 Sin reservas aún</div>';
-
-          grupoCard.innerHTML = `
-            <div class="flex justify-between items-start gap-2">
-              <span class="font-black text-sm md:text-base text-[#4A4A5A] leading-snug">${g.nombre}</span>
-              <span class="px-2.5 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow-2xs ${estado}">${estadoTxt}</span>
-            </div>
-            <div class="text-xs md:text-sm text-[#8A8AAB] font-bold mt-1.5 flex items-center gap-2">
-              <span>⏰ ${g.hora}</span> <span>•</span> <span>Máx: ${g.max} cupos</span>
-            </div>
-            <div class="mt-3 space-y-1.5">${ninosHtml}</div>
-            <button class="mt-4 w-full py-3 px-4 rounded-2xl font-extrabold text-sm transition shadow-sm flex items-center justify-center gap-2 ${ocup >= g.max ? 'bg-[#EDEAFB] text-[#8A8AAB] cursor-not-allowed' : 'bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white'}" ${ocup >= g.max ? 'disabled' : ''} onclick="abrirNino('${key}', '${g.nombre} (${fechaStr} - ${g.hora})')">
-              ${ocup >= g.max ? 'Cupo Completo' : '+ Reservar Cupo'}
-            </button>
-          `;
-          gruposDiv.appendChild(grupoCard);
-        });
-      }
-
-      if (diasConGruposCount === 0) {
-        cont.innerHTML = `
-          <div class="col-span-full py-16 text-center bg-white rounded-3xl border-2 border-[#EDEAFB] p-8 shadow-sm">
-            <div class="text-6xl mb-4">🦕</div>
-            <h4 class="text-xl font-black text-[#6A6AA8]">No hay grupos configurados para esta semana</h4>
-            <p class="text-sm text-[#8A8AAB] font-medium mt-1.5 mb-6 max-w-md mx-auto">Haz clic en Configurar Días para activar grupos y horarios de atención.</p>
-            <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] text-white font-extrabold text-base hover:bg-[#A8A8D0] transition shadow-md" onclick="abrirConfig()">Abrir Configuración</button>
-          </div>
-        `;
-      }
-    }
-
-    window.abrirNino = function(key, titulo) {
-      seleccion = key;
-      document.getElementById('tituloModalNino').innerText = 'Reservar: ' + titulo;
-      document.getElementById('modalNino').classList.remove('hidden');
-      document.getElementById('overlay').classList.remove('hidden');
-      document.getElementById('nombreNino').focus();
-    }
-
-    window.cerrarNino = function() {
-      document.getElementById('modalNino').classList.add('hidden');
-      document.getElementById('overlay').classList.add('hidden');
-      document.getElementById('nombreNino').value = '';
-      document.getElementById('telNino').value = '';
-      seleccion = null;
-    }
-
-    window.confirmarNino = function() {
-      let nombre = document.getElementById('nombreNino').value.trim();
-      let tel = document.getElementById('telNino').value.trim();
-      if (!nombre) {
-        mostrarToast('Por favor, ingresa el nombre del niño o niña.', 'error');
-        return;
-      }
-
-      let grupoId = seleccion.split('-').pop();
-      let fechaCita = seleccion.substring(0, 10);
-      let diaNum = String(new Date(fechaCita + 'T00:00:00').getDay());
-      let max = cfg.dias[diaNum]?.find(g => String(g.id) === String(grupoId))?.max || 5;
-
-      if (!citas[seleccion]) citas[seleccion] = [];
-      if (citas[seleccion].length >= max) {
-        mostrarToast('Este grupo ya se encuentra lleno.', 'error');
-        return;
-      }
-
-      citas[seleccion].push({ nombre, tel: tel || 'Sin teléfono' });
-      guardarEnNube();
-      cerrarNino();
-      render();
-      mostrarToast('¡Reserva registrada con éxito en la nube! 🦕', 'success');
-    }
-
-    window.eliminarNino = function(key, idx) {
-      mostrarConfirmacion('Liberar Cupo', '¿Estás seguro de liberar este cupo?', (aceptado) => {
-        if (aceptado) {
-          citas[key].splice(idx, 1);
-          guardarEnNube();
-          render();
-          mostrarToast('Cupo liberado correctamente.', 'success');
-        }
-      });
-    }
-
-    window.abrirConfig = function() {
-      if (!cfg.dias[diaActivoConfig]) diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
-      renderTabs();
-      document.getElementById('modalConfig').classList.remove('hidden');
-      document.getElementById('overlay').classList.remove('hidden');
-    }
-
-    window.editarDiaRapido = function(diaNum) { diaActivoConfig = diaNum; abrirConfig(); }
-
-    function renderTabs() {
-      let tabs = document.getElementById('tabsDias');
-      tabs.innerHTML = '';
-      let keysOrdenadas = Object.keys(cfg.dias).sort((a,b) => Number(a)-Number(b));
-      if (keysOrdenadas.length > 0 && !cfg.dias[diaActivoConfig]) diaActivoConfig = keysOrdenadas[0];
-
-      keysOrdenadas.forEach(d => {
-        let b = document.createElement('button');
-        b.className = `px-5 py-2.5 rounded-2xl text-sm font-extrabold transition whitespace-nowrap shadow-2xs ${d === diaActivoConfig ? 'bg-[#B8B8DA] text-white shadow-md' : 'bg-[#EDEAFB] text-[#6A6AA8] hover:bg-[#D8D4F5]'}`;
-        b.innerText = NOMBRES_DIA[d];
-        b.onclick = () => { diaActivoConfig = d; renderTabs(); };
-        tabs.appendChild(b);
-      });
-
-      let panel = document.getElementById('panelDia');
-      if (!cfg.dias[diaActivoConfig]) {
-        panel.innerHTML = '<div class="text-center py-10 text-base text-[#8A8AAB] font-medium">No hay días activos configurados.</div>';
-        return;
-      }
-
-      let grupos = cfg.dias[diaActivoConfig];
-      let html = `<div class="text-sm font-black text-[#6A6AA8] mb-3 uppercase tracking-wider">Grupos programados para los ${NOMBRES_DIA[diaActivoConfig]}s (${grupos.length})</div>`;
-      
-      grupos.forEach((g, i) => {
-        html += `
-          <div class="bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs">
-            <div>
-              <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Nombre del Grupo</label>
-              <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gNom-${diaActivoConfig}-${i}" value="${g.nombre}">
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="flex-1">
-                <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Hora</label>
-                <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gHora-${diaActivoConfig}-${i}" type="time" value="${g.hora}">
-              </div>
-              <div class="w-32">
-                <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Máx Cupos</label>
-                <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gMax-${diaActivoConfig}-${i}" type="number" min="1" max="30" value="${g.max}">
-              </div>
-              <div class="flex items-end">
-                <button class="w-11 h-11 rounded-xl bg-[#FFD0D0] hover:bg-[#F9A8A8] text-[#9A2A2A] font-black text-base transition flex items-center justify-center shrink-0 mt-6 shadow-2xs" onclick="borrarGrupoDia('${diaActivoConfig}', ${i})">🗑️</button>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-
-      html += `
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
-          <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="addGrupoDia('${diaActivoConfig}')">+ Añadir Grupo</button>
-          <button class="px-4.5 py-2.5 rounded-2xl bg-[#FFD0D0]/70 hover:bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-sm transition" onclick="borrarDia('${diaActivoConfig}')">🗑️ Eliminar Día</button>
-        </div>
-      `;
-      panel.innerHTML = html;
-    }
-
-    window.addGrupoDia = function(diaNum) { cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 }); renderTabs(); }
-    window.borrarGrupoDia = function(diaNum, i) {
-      if (cfg.dias[diaNum].length <= 1) { mostrarToast('Debe haber al menos un grupo.', 'error'); return; }
-      cfg.dias[diaNum].splice(i, 1);
-      renderTabs();
-    }
-    window.agregarDia = function() {
-      let nuevo = document.getElementById('nuevoDiaSelect').value;
-      if (cfg.dias[nuevo]) { mostrarToast('El día ya está configurado.', 'error'); return; }
-      cfg.dias[nuevo] = [{ id: Date.now(), nombre: `Grupo ${NOMBRES_DIA[nuevo]}`, hora: "09:00", max: 5 }];
-      diaActivoConfig = nuevo;
-      renderTabs();
-    }
-    window.borrarDia = function(diaNum) {
-      if (Object.keys(cfg.dias).length <= 1) { mostrarToast('Debe mantener al menos un día.', 'error'); return; }
-      mostrarConfirmacion('Eliminar Día', '¿Estás seguro de eliminar este día?', (aceptado) => {
-        if (aceptado) {
-          delete cfg.dias[diaNum];
-          diaActivoConfig = Object.keys(cfg.dias)[0] || "1";
-          renderTabs();
-        }
-      });
-    }
-
-    window.cerrarConfig = function() { document.getElementById('modalConfig').classList.add('hidden'); document.getElementById('overlay').classList.add('hidden'); }
-    window.guardarTodo = function() {
-      Object.keys(cfg.dias).forEach(diaNum => {
-        cfg.dias[diaNum].forEach((g, i) => {
-          let nom = document.getElementById(`gNom-${diaNum}-${i}`);
-          let hora = document.getElementById(`gHora-${diaNum}-${i}`);
-          let max = document.getElementById(`gMax-${diaNum}-${i}`);
-          if (nom && hora && max) {
-            g.nombre = nom.value.trim()요 || 'Grupo';
-            g.hora = hora.value || '09:00';
-            g.max = Math.max(1, parseInt(max.value) || 5);
-          }
-        });
-      });
-      guardarEnNube();
-      cerrarConfig();
-      render();
-    }
-
-    window.onload = function() {
-      initFirebaseAndData();
-    };
-  </script>
+</div>
+</div>
+<div class="flex justify-between items-center mt-6">
+<button class="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-extrabold text-xs hover:bg-red-200 transition" onclick="borrarFirebaseConfig()">Desconectar / Borrar</button>
+<div class="flex gap-3">
+<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="cerrarFirebaseSetup()">Cancelar</button>
+<button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black text-sm transition shadow-md" onclick="guardarFirebaseConfigManual()">Guardar y Conectar</button>
+</div>
+</div>
+</div>
+</div>
+​<!-- Top Bar -->
+<header class="bg-white/90 backdrop-blur-md px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-5 shadow-[0_4px_20px_rgba(184,184,218,0.15)] sticky top-0 z-40 border-b border-[#F0F0FF]">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#B8B8DA] to-[#F9A8A8] flex items-center justify-center shadow-lg text-white font-black text-2xl">
+G
+</div>
+<div>
+<h1 class="text-2xl md:text-3xl font-black tracking-tight leading-tight">
+<span style="color:#B8B8DA">Gn</span><span style="color:#F9A8A8">ii</span><span style="color:#FCD58E">i</span><span style="color:#A8D5BA">u</span><span style="color:#7EC8B8">s</span>
+<span class="text-sm md:text-base font-semibold text-[#8A8AAB] block md:inline md:ml-2">Centro Psicológico</span>
+</h1>
+<div class="text-xs md:text-sm text-[#8A8AAB] font-bold tracking-wide mt-1 flex gap-3">
+<span class="flex items-center gap-1">● Comprender</span>
+<span class="flex items-center gap-1">● Acompañar</span>
+<span class="flex items-center gap-1">● Potenciar</span>
+</div>
+</div>
+</div>
+​<div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
+<div id="syncStatusBadge" onclick="abrirFirebaseSetup()" class="px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition" title="Haz clic para configurar Firebase">
+<span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Configurar Firebase
+</div>
+<button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
+⚙️ Configurar Días
+</button>
+<div class="flex items-center bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-1.5 gap-1.5 shadow-inner">
+<button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(-1)" title="Semana Anterior">←</button>
+<button class="px-4 py-2 text-sm font-extrabold text-[#6A6AA8] hover:bg-[#EDEAFB] rounded-xl transition" onclick="irHoy()">Hoy</button>
+<button class="w-10 h-10 rounded-xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black flex items-center justify-center transition shadow-sm text-lg" onclick="cambiarSemana(1)" title="Semana Siguiente">→</button>
+</div>
+</div>
+</header>
+​<!-- Main Content Area -->
+<main class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
+<!-- Notice Banner for Firebase Setup if not connected -->
+<div id="firebaseNoticeBanner" class="bg-[#FFF8E8] border-2 border-[#FCD58E] rounded-3xl p-5 mb-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 hidden">
+<div class="flex items-center gap-3">
+<span class="text-3xl">💡</span>
+<div>
+<h4 class="font-black text-[#8A6A00] text-base">Conéctate a la Nube con Firebase</h4>
+<p class="text-xs md:text-sm text-[#8A6A00]/80 font-medium">Actualmente estás usando almacenamiento local. Configura Firebase para sincronizar tus reservas en tiempo real en todos tus dispositivos.</p>
+</div>
+</div>
+<button class="px-5 py-2.5 rounded-2xl bg-[#FCD58E] hover:bg-[#F9C570] text-[#6A4A00] font-black text-sm transition shrink-0 shadow-sm" onclick="abrirFirebaseSetup()">Configurar Ahora</button>
+</div>
+​<!-- Week Header Card & Legend -->
+<div class="bg-gradient-to-r from-[#FBFAFF] via-[#F4F2FF] to-[#ECE8FF] border-2 border-[#EAE6FF] rounded-3xl p-6 md:p-7 mb-8 shadow-[0_6px_25px_rgba(184,184,218,0.18)] flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+<div>
+<span class="text-xs md:text-sm font-extrabold uppercase tracking-widest text-[#8A8AAB] block mb-1.5">📅 Semana Activa en Curso</span>
+<h3 id="tituloSemana" class="text-xl md:text-2xl font-black text-[#6A6AA8]">Cargando calendario...</h3>
+</div>
+<div class="flex items-center gap-3 flex-wrap">
+<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#D6F0E0] text-[#2D8A5A] shadow-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> Libre
+</div>
+<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFF0C0] text-[#8A6A00] shadow-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00]"></span> Casi lleno
+</div>
+<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#FFD0D0] text-[#9A2A2A] shadow-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Lleno
+</div>
+</div>
+</div>
+​<!-- Days Grid -->
+<div id="contenedorDias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"></div>
+</main>
+​<div class="fixed right-[-20px] bottom-[-20px] w-56 opacity-[0.06] pointer-events-none select-none z-0 text-[10rem]">🦕</div>
+​<!-- Universal Backdrop Overlay -->
+<div id="overlay" class="fixed inset-0 bg-[#4A4A5A]/40 backdrop-blur-sm z-40 hidden" onclick="cerrarTodo()"></div>
+​<!-- Configuration Modal -->
+<div id="modalConfig" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-2xl bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-2 border-[#EAE6FF] z-50 hidden max-h-[90vh] flex flex-col">
+<div class="flex justify-between items-center mb-5 border-b-2 border-[#EDEAFB] pb-4">
+<h3 class="text-xl md:text-2xl font-black text-[#6A6AA8] flex items-center gap-2.5">🦕 Configuración de Grupos GniiUS</h3>
+<button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarConfig()">✕</button>
+</div>
+​<div id="tabsDias" class="flex gap-2.5 overflow-x-auto pb-3 mb-5 scrollbar-none"></div>
+<div id="panelDia" class="flex-1 overflow-y-auto pr-2 space-y-4 mb-5"></div>
+​<div class="pt-5 border-t-2 border-[#EDEAFB] flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<select id="nuevoDiaSelect" class="px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] text-base font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]">
+<option value="0">Domingo</option><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option>
+</select>
+<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition shadow-xs" onclick="agregarDia()">+ Añadir día</button>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-extrabold text-base transition shadow-md" onclick="guardarTodo()">Guardar Cambios</button>
+<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarConfig()">Cerrar</button>
+</div>
+</div>
+</div>
+​<!-- Reservation Modal -->
+<div id="modalNino" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md bg-white rounded-3xl p-7 md:p-8 shadow-2xl border-t-8 border-[#A8D5BA] z-50 hidden">
+<div class="flex justify-between items-center mb-4">
+<h3 id="tituloModalNino" class="text-xl font-black text-[#6A6AA8]">Reserva de Cupo</h3>
+<button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarNino()">✕</button>
+</div>
+<p class="text-sm text-[#8A8AAB] mb-5 font-medium leading-relaxed">Ingresa los datos del niño(a) y del responsable para asignar el cupo en el grupo seleccionado.</p>
+​<div class="space-y-4">
+<div>
+<label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Nombre del Niño / Niña</label>
+<input id="nombreNino" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. Mateo Pérez">
+</div>
+<div>
+<label class="block text-sm font-extrabold text-[#6A6AA8] mb-1.5">Teléfono / WhatsApp Papá o Mamá</label>
+<input id="telNino" type="tel" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] focus:outline-none focus:border-[#B8B8DA] text-base font-bold text-[#4A4A5A]" placeholder="Ej. +51 987 654 321">
+</div>
+</div>
+​<div class="flex justify-end gap-3.5 mt-8">
+<button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-base transition" onclick="cerrarNino()">Cancelar</button>
+<button class="px-6 py-3 rounded-2xl bg-[#A8D5BA] hover:bg-[#96C5A9] text-white font-black text-base transition shadow-md flex items-center gap-2" onclick="confirmarNino()">
+🦕 Reservar Cupo
+</button>
+</div>
+</div>
+​<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+​const NOMBRES_DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+​let defaultConfig = {
+dias: {
+"5": [
+{ id: 1, nombre: "Grupo 1 - 0 a 12 meses", hora: "09:00", max: 5 },
+{ id: 2, nombre: "Grupo 2 - 1 a 2 años", hora: "11:00", max: 5 },
+{ id: 3, nombre: "Grupo 3 - 2 a 3 años", hora: "15:30", max: 5 },
+{ id: 4, nombre: "Grupo 4 - 3 a 4 años", hora: "17:00", max: 5 }
+],
+"6": [
+{ id: 11, nombre: "Grupo 1 Sábado Mañana", hora: "09:30", max: 5 },
+{ id: 12, nombre: "Grupo 2 Sábado Media", hora: "11:30", max: 5 },
+{ id: 13, nombre: "Grupo 3 Sábado Tarde", hora: "15:00", max: 5 },
+{ id: 14, nombre: "Grupo 4 Sábado Tarde Noche", hora: "16:30", max: 5 }
+]
+}
+};
+​let cfg = JSON.parse(JSON.stringify(defaultConfig));
+let citas = {};
+let semanaBase = new Date();
+let seleccion = null;
+let diaActivoConfig = "5";
+​let app, db, auth;
+const appId = typeof __app_id !== 'undefined' ? __app_id : (localStorage.getItem('gniius_firebase_appid') || 'gniius-github-app');
+​function mostrarToast(mensaje, tipo = 'info') {
+const container = document.getElementById('toastContainer');
+const toast = document.createElement('div');
+let bgColor = 'bg-white border-[#B8B8DA] text-[#4A4A5A]';
+if (tipo === 'success') bgColor = 'bg-[#D6F0E0] border-[#A8D5BA] text-[#2D8A5A]';
+if (tipo === 'error') bgColor = 'bg-[#FFD0D0] border-[#F9A8A8] text-[#9A2A2A]';
+​toast.className = pointer-events-auto px-5 py-4 rounded-2xl shadow-2xl border-2 text-base font-extrabold flex items-center justify-between gap-4 transform translate-y-2 opacity-0 transition-all duration-300 ${bgColor};
+toast.innerHTML = <span>${mensaje}</span>;
+container.appendChild(toast);
+setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+setTimeout(() => {
+toast.classList.add('translate-y-2', 'opacity-0');
+setTimeout(() => toast.remove(), 300);
+}, 3500);
+}
+​function mostrarConfirmacion(titulo, mensaje, callback) {
+const overlay = document.getElementById('modalConfirmOverlay');
+document.getElementById('confirmTitle').innerText = titulo;
+document.getElementById('confirmMessage').innerText = mensaje;
+overlay.classList.remove('hidden');
+​const okBtn = document.getElementById('confirmOkBtn');
+const cancelBtn = document.getElementById('confirmCancelBtn');
+const newOk = okBtn.cloneNode(true);
+const newCancel = cancelBtn.cloneNode(true);
+okBtn.parentNode.replaceChild(newOk, okBtn);
+cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+​newOk.onclick = () => { overlay.classList.add('hidden'); callback(true); };
+newCancel.onclick = () => { overlay.classList.add('hidden'); callback(false); };
+}
+​async function guardarEnNube() {
+if (!auth || !auth.currentUser) {
+// Fallback to localStorage if not connected to Firebase
+localStorage.setItem('cfg_gniiUS_v4', JSON.stringify(cfg));
+localStorage.setItem('citas_gniiUS_v4', JSON.stringify(citas));
+return;
+}
+try {
+const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
+await setDoc(docRef, { cfg, citas, updatedAt: new Date().toISOString() });
+} catch (e) {
+console.error("Error guardando en Firestore:", e);
+}
+}
+​async function initFirebaseAndData() {
+let firebaseConfig = {};
+if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+try { firebaseConfig = JSON.parse(__firebase_config); } catch(e){}
+} else {
+const savedCfg = localStorage.getItem('gniius_firebase_config');
+if (savedCfg) {
+try { firebaseConfig = JSON.parse(savedCfg); } catch(e){}
+}
+}
+​// Load local data first so app renders instantly
+const localCfg = localStorage.getItem('cfg_gniiUS_v4');
+const localCitas = localStorage.getItem('citas_gniiUS_v4');
+if (localCfg) { try { cfg = JSON.parse(localCfg); } catch(e){} }
+if (localCitas) { try { citas = JSON.parse(localCitas); } catch(e){} }
+​if (!firebaseConfig || !firebaseConfig.apiKey) {
+document.getElementById('firebaseNoticeBanner').classList.remove('hidden');
+const badge = document.getElementById('syncStatusBadge');
+badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
+badge.innerHTML = <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00]"></span> ⚙️ Configurar Firebase;
+render();
+return;
+}
+​try {
+app = initializeApp(firebaseConfig);
+db = getFirestore(app);
+auth = getAuth(app);
+​if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+await signInWithCustomToken(auth, __initial_auth_token);
+} else {
+await signInAnonymously(auth);
+}
+​const user = auth.currentUser;
+if (!user) return;
+​document.getElementById('firebaseNoticeBanner').classList.add('hidden');
+const badge = document.getElementById('syncStatusBadge');
+badge.className = "px-3.5 py-2 rounded-2xl bg-[#D6F0E0] text-[#2D8A5A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
+badge.innerHTML = <span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Sincronizada;
+​const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
+​onSnapshot(docRef, (docSnap) => {
+if (docSnap.exists()) {
+const data = docSnap.data();
+if (data.cfg) cfg = data.cfg;
+if (data.citas) citas = data.citas;
+render();
+} else {
+guardarEnNube();
+render();
+}
+}, (error) => {
+console.error("Snapshot error:", error);
+});
+​} catch (e) {
+console.error("Auth/Firestore connection error:", e);
+document.getElementById('firebaseNoticeBanner').classList.remove('hidden');
+const badge = document.getElementById('syncStatusBadge');
+badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
+badge.innerHTML = <span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> ⚠️ Error de Conexión;
+render();
+}
+}
+​window.abrirFirebaseSetup = function() {
+let saved = localStorage.getItem('gniius_firebase_config');
+if (saved) {
+document.getElementById('inputFirebaseConfigJson').value = saved;
+}
+document.getElementById('modalFirebaseSetup').classList.remove('hidden');
+document.getElementById('overlay').classList.remove('hidden');
+}
+window.cerrarFirebaseSetup = function() {
+document.getElementById('modalFirebaseSetup').classList.add('hidden');
+document.getElementById('overlay').classList.add('hidden');
+}
+window.guardarFirebaseConfigManual = function() {
+let txt = document.getElementById('inputFirebaseConfigJson').value.trim();
+if (!txt) return mostrarToast('Ingresa la configuración de Firebase', 'error');
+try {
+let parsed = JSON.parse(txt);
+if (!parsed.apiKey) throw new Error();
+localStorage.setItem('gniius_firebase_config', JSON.stringify(parsed));
+if (parsed.projectId) localStorage.setItem('gniius_firebase_appid', parsed.projectId);
+cerrarFirebaseSetup();
+mostrarToast('¡Configuración guardada! Conectando...', 'success');
+setTimeout(() => location.reload(), 1000);
+} catch (e) {
+mostrarToast('JSON inválido. Asegúrate de copiar todo el objeto correctamente.', 'error');
+}
+}
+window.borrarFirebaseConfig = function() {
+localStorage.removeItem('gniius_firebase_config');
+localStorage.removeItem('gniius_firebase_appid');
+cerrarFirebaseSetup();
+mostrarToast('Configuración eliminada. Usando modo local.', 'success');
+setTimeout(() => location.reload(), 1000);
+}
+​function formatearFecha(d) { return d.toISOString().split('T')[0]; }
+window.cambiarSemana = function(dir) { semanaBase.setDate(semanaBase.getDate() + dir * 7); render(); }
+window.irHoy = function() { semanaBase = new Date(); render(); }
+window.cerrarTodo = function() { cerrarConfig(); cerrarNino(); cerrarFirebaseSetup(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
+​function render() {
+let inicioSem = new Date(semanaBase);
+inicioSem.setDate(inicioSem.getDate() - inicioSem.getDay());
+let finSem = new Date(inicioSem);
+finSem.setDate(finSem.getDate() + 6);
+​document.getElementById('tituloSemana').innerText =
+${inicioSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})} — ${finSem.toLocaleDateString('es-PE', {day: 'numeric', month: 'short', year: 'numeric'})};
+​let cont = document.getElementById('contenedorDias');
+cont.innerHTML = '';
+let diasConGruposCount = 0;
+​for (let i = 0; i < 7; i++) {
+let fecha = new Date(inicioSem);
+fecha.setDate(inicioSem.getDate() + i);
+let diaNum = String(fecha.getDay());
+if (!cfg.dias[diaNum]) continue;
+diasConGruposCount++;
+let gruposDelDia = cfg.dias[diaNum];
+let fechaStr = formatearFecha(fecha);
+​let diaCard = document.createElement('div');
+diaCard.className = 'bg-white rounded-3xl p-5 md:p-6 shadow-[0_6px_25px_rgba(184,184,218,0.12)] border-2 border-[#F0F0FF] flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-xl';
+diaCard.innerHTML = <div class="flex justify-between items-center border-b-2 border-[#EDEAFB] pb-3.5"> <h4 class="font-black text-[#6A6AA8] text-base md:text-lg flex items-center gap-2"> 📅 ${NOMBRES_DIA[fecha.getDay()]} <span class="text-xs md:text-sm font-bold text-[#8A8AAB] bg-[#FBFAFF] px-2.5 py-0.5 rounded-full border border-[#EDEAFB]">${fecha.toLocaleDateString('es-PE', {day: 'numeric', month: 'short'})}</span> </h4> <button class="px-3.5 py-1.5 text-xs md:text-sm font-extrabold rounded-xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] transition" onclick="editarDiaRapido('${diaNum}')">✏️ Editar</button> </div> <div id="grupos-${fechaStr}" class="space-y-4 flex-1"></div>;
+cont.appendChild(diaCard);
+​let gruposDiv = diaCard.querySelector(#grupos-${fechaStr});
+gruposDelDia.forEach(g => {
+let key = ${fechaStr}-${g.id};
+let lista = citas[key] || [];
+let ocup = lista.length;
+let estado = ocup >= g.max ? 'bg-[#FFD0D0] text-[#9A2A2A]' : ocup >= g.max - 1 ? 'bg-[#FFF0C0] text-[#8A6A00]' : 'bg-[#D6F0E0] text-[#2D8A5A]';
+let estadoTxt = ocup >= g.max ? 'LLENO' : ${g.max - ocup} libres;
+​let grupoCard = document.createElement('div');
+grupoCard.className = rounded-2xl p-4.5 border-l-6 bg-[#FBFAFF] border-2 border-[#EDEAFB] relative overflow-hidden transition-all hover:shadow-md ${ocup >= g.max ? 'border-l-[#F9A8A8] bg-[#FFF8F8]' : 'border-l-[#B8B8DA]'};
+​let ninosHtml = lista.map((n, idx) => <div class="bg-white border-2 border-[#EDEAFB] px-3.5 py-2.5 rounded-xl flex justify-between items-center text-sm shadow-2xs mt-2"> <span class="font-extrabold text-[#4A4A5A] truncate mr-2" title="${n.nombre} (${n.tel})">👶 <b>${n.nombre}</b> <span class="text-[#8A8AAB] font-medium text-xs block md:inline">(${n.tel})</span></span> <button class="w-7 h-7 rounded-lg bg-[#FFD0D0]/50 hover:bg-[#FFD0D0] text-red-600 font-black flex items-center justify-center transition shrink-0" onclick="eliminarNino('${key}', ${idx})" title="Liberar cupo">✕</button> </div>).join('') || '<div class="text-xs text-[#8A8AAB] font-medium italic mt-2 py-1 px-2 bg-white/60 rounded-lg border border-[#EDEAFB] text-center">🦕 Sin reservas aún</div>';
+​grupoCard.innerHTML = <div class="flex justify-between items-start gap-2"> <span class="font-black text-sm md:text-base text-[#4A4A5A] leading-snug">${g.nombre}</span> <span class="px-2.5 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow-2xs ${estado}">${estadoTxt}</span> </div> <div class="text-xs md:text-sm text-[#8A8AAB] font-bold mt-1.5 flex items-center gap-2"> <span>⏰ ${g.hora}</span> <span>•</span> <span>Máx: ${g.max} cupos</span> </div> <div class="mt-3 space-y-1.5">${ninosHtml}</div> <button class="mt-4 w-full py-3 px-4 rounded-2xl font-extrabold text-sm transition shadow-sm flex items-center justify-center gap-2 ${ocup >= g.max ? 'bg-[#EDEAFB] text-[#8A8AAB] cursor-not-allowed' : 'bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white'}" ${ocup >= g.max ? 'disabled' : ''} onclick="abrirNino('${key}', '${g.nombre} (${fechaStr} - ${g.hora})')"> ${ocup >= g.max ? 'Cupo Completo' : '+ Reservar Cupo'} </button>;
+gruposDiv.appendChild(grupoCard);
+});
+}
+​if (diasConGruposCount === 0) {
+cont.innerHTML = <div class="col-span-full py-16 text-center bg-white rounded-3xl border-2 border-[#EDEAFB] p-8 shadow-sm"> <div class="text-6xl mb-4">🦕</div> <h4 class="text-xl font-black text-[#6A6AA8]">No hay grupos configurados para esta semana</h4> <p class="text-sm text-[#8A8AAB] font-medium mt-1.5 mb-6 max-w-md mx-auto">Haz clic en Configurar Días para activar grupos y horarios de atención.</p> <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] text-white font-extrabold text-base hover:bg-[#A8A8D0] transition shadow-md" onclick="abrirConfig()">Abrir Configuración</button> </div>;
+}
+}
+​window.abrirNino = function(key, titulo) {
+seleccion = key;
+document.getElementById('tituloModalNino').innerText = 'Reservar: ' + titulo;
+document.getElementById('modalNino').classList.remove('hidden');
+document.getElementById('overlay').classList.remove('hidden');
+document.getElementById('nombreNino').focus();
+}
+​window.cerrarNino = function() {
+document.getElementById('modalNino').classList.add('hidden');
+document.getElementById('overlay').classList.add('hidden');
+document.getElementById('nombreNino').value = '';
+document.getElementById('telNino').value = '';
+seleccion = null;
+}
+​window.confirmarNino = function() {
+let nombre = document.getElementById('nombreNino').value.trim();
+let tel = document.getElementById('telNino').value.trim();
+if (!nombre) {
+mostrarToast('Por favor, ingresa el nombre del niño o niña.', 'error');
+return;
+}
+​let grupoId = seleccion.split('-').pop();
+let fechaCita = seleccion.substring(0, 10);
+let diaNum = String(new Date(fechaCita + 'T00:00:00').getDay());
+let max = cfg.dias[diaNum]?.find(g => String(g.id) === String(grupoId))?.max || 5;
+​if (!citas[seleccion]) citas[seleccion] = [];
+if (citas[seleccion].length >= max) {
+mostrarToast('Este grupo ya se encuentra lleno.', 'error');
+return;
+}
+​citas[seleccion].push({ nombre, tel: tel || 'Sin teléfono' });
+guardarEnNube();
+cerrarNino();
+render();
+mostrarToast('¡Reserva registrada con éxito! 🦕', 'success');
+}
+​window.eliminarNino = function(key, idx) {
+mostrarConfirmacion('Liberar Cupo', '¿Estás seguro de liberar este cupo?', (aceptado) => {
+if (aceptado) {
+citas[key].splice(idx, 1);
+guardarEnNube();
+render();
+mostrarToast('Cupo liberado correctamente.', 'success');
+}
+});
+}
+​window.abrirConfig = function() {
+if (!cfg.dias[diaActivoConfig]) diaActivoConfig = Object.keys(cfg.dias)[0] || "5";
+renderTabs();
+document.getElementById('modalConfig').classList.remove('hidden');
+document.getElementById('overlay').classList.remove('hidden');
+}
+​window.editarDiaRapido = function(diaNum) { diaActivoConfig = diaNum; abrirConfig(); }
+​function renderTabs() {
+let tabs = document.getElementById('tabsDias');
+tabs.innerHTML = '';
+let keysOrdenadas = Object.keys(cfg.dias).sort((a,b) => Number(a)-Number(b));
+if (keysOrdenadas.length > 0 && !cfg.dias[diaActivoConfig]) diaActivoConfig = keysOrdenadas[0];
+​keysOrdenadas.forEach(d => {
+let b = document.createElement('button');
+b.className = px-5 py-2.5 rounded-2xl text-sm font-extrabold transition whitespace-nowrap shadow-2xs ${d === diaActivoConfig ? 'bg-[#B8B8DA] text-white shadow-md' : 'bg-[#EDEAFB] text-[#6A6AA8] hover:bg-[#D8D4F5]'};
+b.innerText = NOMBRES_DIA[d];
+b.onclick = () => { diaActivoConfig = d; renderTabs(); };
+tabs.appendChild(b);
+});
+​let panel = document.getElementById('panelDia');
+if (!cfg.dias[diaActivoConfig]) {
+panel.innerHTML = '<div class="text-center py-10 text-base text-[#8A8AAB] font-medium">No hay días activos configurados.</div>';
+return;
+}
+​let grupos = cfg.dias[diaActivoConfig];
+let html = <div class="text-sm font-black text-[#6A6AA8] mb-3 uppercase tracking-wider">Grupos programados para los ${NOMBRES_DIA[diaActivoConfig]}s (${grupos.length})</div>;
+​grupos.forEach((g, i) => {
+html += <div class="bg-[#FBFAFF] border-2 border-[#EDEAFB] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs"> <div> <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Nombre del Grupo</label> <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gNom-${diaActivoConfig}-${i}" value="${g.nombre}"> </div> <div class="flex items-center gap-3"> <div class="flex-1"> <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Hora</label> <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gHora-${diaActivoConfig}-${i}" type="time" value="${g.hora}"> </div> <div class="w-32"> <label class="text-xs font-extrabold text-[#8A8AAB] block mb-1">Máx Cupos</label> <input class="w-full px-4 py-2.5 border-2 border-[#EDEAFB] rounded-xl bg-white text-sm font-bold text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" id="gMax-${diaActivoConfig}-${i}" type="number" min="1" max="30" value="${g.max}"> </div> <div class="flex items-end"> <button class="w-11 h-11 rounded-xl bg-[#FFD0D0] hover:bg-[#F9A8A8] text-[#9A2A2A] font-black text-base transition flex items-center justify-center shrink-0 mt-6 shadow-2xs" onclick="borrarGrupoDia('${diaActivoConfig}', ${i})">🗑️</button> </div> </div> </div>;
+});
+​html += <div class="flex flex-wrap items-center justify-between gap-3 pt-3"> <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="addGrupoDia('${diaActivoConfig}')">+ Añadir Grupo</button> <button class="px-4.5 py-2.5 rounded-2xl bg-[#FFD0D0]/70 hover:bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-sm transition" onclick="borrarDia('${diaActivoConfig}')">🗑️ Eliminar Día</button> </div>;
+panel.innerHTML = html;
+}
+​window.addGrupoDia = function(diaNum) { cfg.dias[diaNum].push({ id: Date.now(), nombre: "Nuevo Grupo Psicológico", hora: "10:00", max: 5 }); renderTabs(); }
+window.borrarGrupoDia = function(diaNum, i) {
+if (cfg.dias[diaNum].length <= 1) { mostrarToast('Debe haber al menos un grupo.', 'error'); return; }
+cfg.dias[diaNum].splice(i, 1);
+renderTabs();
+}
+window.agregarDia = function() {
+let nuevo = document.getElementById('nuevoDiaSelect').value;
+if (cfg.dias[nuevo]) { mostrarToast('El día ya está configurado.', 'error'); return; }
+cfg.dias[nuevo] = [{ id: Date.now(), nombre: Grupo ${NOMBRES_DIA[nuevo]}, hora: "09:00", max: 5 }];
+diaActivoConfig = nuevo;
+renderTabs();
+}
+window.borrarDia = function(diaNum) {
+if (Object.keys(cfg.dias).length <= 1) { mostrarToast('Debe mantener al menos un día.', 'error'); return; }
+mostrarConfirmacion('Eliminar Día', '¿Estás seguro de eliminar este día?', (aceptado) => {
+if (aceptado) {
+delete cfg.dias[diaNum];
+diaActivoConfig = Object.keys(cfg.dias)[0] || "1";
+renderTabs();
+}
+});
+}
+​window.cerrarConfig = function() { document.getElementById('modalConfig').classList.add('hidden'); document.getElementById('overlay').classList.add('hidden'); }
+window.guardarTodo = function() {
+Object.keys(cfg.dias).forEach(diaNum => {
+cfg.dias[diaNum].forEach((g, i) => {
+let nom = document.getElementById(gNom-${diaNum}-${i});
+let hora = document.getElementById(gHora-${diaNum}-${i});
+let max = document.getElementById(gMax-${diaNum}-${i});
+if (nom && hora && max) {
+g.nombre = nom.value.trim() || 'Grupo';
+g.hora = hora.value || '09:00';
+g.max = Math.max(1, parseInt(max.value) || 5);
+}
+});
+});
+localStorage.setItem('cfg_gniiUS_v4', JSON.stringify(cfg));
+guardarEnNube();
+cerrarConfig();
+render();
+}
+​window.onload = function() {
+initFirebaseAndData();
+};
+</script>
 </body>
 </html>
