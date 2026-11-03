@@ -42,6 +42,36 @@
     </div>
   </div>
 
+  <!-- Firebase Setup Modal (For GitHub Pages) -->
+  <div id="modalFirebaseSetup" class="fixed inset-0 bg-[#4A4A5A]/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-7 md:p-8 shadow-2xl max-w-lg w-full border-2 border-[#EAE6FF] max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-black text-[#6A6AA8] flex items-center gap-2">🔥 Configurar Firebase</h3>
+        <button class="w-10 h-10 rounded-full bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold flex items-center justify-center transition text-lg" onclick="cerrarFirebaseSetup()">✕</button>
+      </div>
+      <p class="text-sm text-[#8A8AAB] mb-5 font-medium leading-relaxed">
+        Como estás ejecutando esta app en GitHub Pages, pega tu objeto de configuración de Firebase (puedes obtenerlo en la consola de Firebase en Configuración de Proyecto > General > SDK de Firebase).
+      </p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-extrabold text-[#6A6AA8] mb-1">Objeto de Configuración JSON o appId</label>
+          <textarea id="inputFirebaseConfigJson" rows="6" class="w-full px-4 py-3 border-2 border-[#EDEAFB] rounded-2xl bg-[#FBFAFF] font-mono text-xs text-[#4A4A5A] focus:outline-none focus:border-[#B8B8DA]" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "tu-proyecto.firebaseapp.com",
+  "projectId": "tu-proyecto",
+  "storageBucket": "tu-proyecto.appspot.com",
+  "messagingSenderId": "123456...",
+  "appId": "1:123456..."
+}'></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3.5 mt-6">
+        <button class="px-5 py-3 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm transition" onclick="cerrarFirebaseSetup()">Cancelar</button>
+        <button class="px-6 py-3 rounded-2xl bg-[#B8B8DA] hover:bg-[#A8A8D0] text-white font-black text-sm transition shadow-md" onclick="guardarFirebaseConfigManual()">Conectar Firebase</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Bar -->
   <header class="bg-white/90 backdrop-blur-md px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-5 shadow-[0_4px_20px_rgba(184,184,218,0.15)] sticky top-0 z-40 border-b border-[#F0F0FF]">
     <div class="flex items-center gap-4">
@@ -62,8 +92,8 @@
     </div>
 
     <div class="flex items-center gap-3 ml-auto md:ml-0 flex-wrap">
-      <div id="syncStatusBadge" class="px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Conectando nube Firebase...
+      <div id="syncStatusBadge" onclick="abrirFirebaseSetup()" class="px-3.5 py-2 rounded-2xl bg-[#FFF0C0] text-[#8A6A00] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition" title="Haz clic para configurar Firebase">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#8A6A00] animate-pulse"></span> Conectar Firebase...
       </div>
       <button class="px-4.5 py-2.5 rounded-2xl bg-[#EDEAFB] hover:bg-[#D8D4F5] text-[#6A6AA8] font-extrabold text-sm md:text-base transition shadow-sm flex items-center gap-2" onclick="abrirConfig()">
         ⚙️ Configurar Días
@@ -187,18 +217,8 @@
     let seleccion = null;
     let diaActivoConfig = "5";
 
-    // Firebase Initialization (fully automated cloud backend)
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'gniius-default-app';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    
     let app, db, auth;
-    try {
-      app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      auth = getAuth(app);
-    } catch (e) {
-      console.error("Firebase init error:", e);
-    }
+    const appId = typeof __app_id !== 'undefined' ? __app_id : (localStorage.getItem('gniius_firebase_appid') || 'gniius-github-app');
 
     function mostrarToast(mensaje, tipo = 'info') {
       const container = document.getElementById('toastContainer');
@@ -241,12 +261,33 @@
         await setDoc(docRef, { cfg, citas, updatedAt: new Date().toISOString() });
       } catch (e) {
         console.error("Error guardando en Firestore:", e);
-        mostrarToast('Error al guardar en la nube de Firebase', 'error');
       }
     }
 
     async function initFirebaseAndData() {
+      let firebaseConfig = {};
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try { firebaseConfig = JSON.parse(__firebase_config); } catch(e){}
+      } else {
+        const savedCfg = localStorage.getItem('gniius_firebase_config');
+        if (savedCfg) {
+          try { firebaseConfig = JSON.parse(savedCfg); } catch(e){}
+        }
+      }
+
+      if (!firebaseConfig || !firebaseConfig.apiKey) {
+        const badge = document.getElementById('syncStatusBadge');
+        badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> ⚙️ Configurar Firebase`;
+        render();
+        return;
+      }
+
       try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
         } else {
@@ -258,11 +299,10 @@
 
         const badge = document.getElementById('syncStatusBadge');
         badge.className = "px-3.5 py-2 rounded-2xl bg-[#D6F0E0] text-[#2D8A5A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Firebase Sincronizada`;
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#2D8A5A]"></span> ☁️ Nube Sincronizada`;
 
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'calendario_gniius');
         
-        // Real-time listener across all devices/browsers
         onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -280,16 +320,38 @@
       } catch (e) {
         console.error("Auth/Firestore connection error:", e);
         const badge = document.getElementById('syncStatusBadge');
-        badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm";
-        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> Error de conexión Firebase`;
+        badge.className = "px-3.5 py-2 rounded-2xl bg-[#FFD0D0] text-[#9A2A2A] font-extrabold text-xs md:text-sm flex items-center gap-2 shadow-sm cursor-pointer hover:opacity-80 transition";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#9A2A2A]"></span> ⚠️ Error de Conexión`;
         render();
+      }
+    }
+
+    window.abrirFirebaseSetup = function() {
+      document.getElementById('modalFirebaseSetup').classList.remove('hidden');
+    }
+    window.cerrarFirebaseSetup = function() {
+      document.getElementById('modalFirebaseSetup').classList.add('hidden');
+    }
+    window.guardarFirebaseConfigManual = function() {
+      let txt = document.getElementById('inputFirebaseConfigJson').value.trim();
+      if (!txt) return mostrarToast('Ingresa la configuración', 'error');
+      try {
+        let parsed = JSON.parse(txt);
+        if (!parsed.apiKey) throw new Error();
+        localStorage.setItem('gniius_firebase_config', JSON.stringify(parsed));
+        if (parsed.projectId) localStorage.setItem('gniius_firebase_appid', parsed.projectId);
+        cerrarFirebaseSetup();
+        mostrarToast('Configuración guardada. Recargando...', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (e) {
+        mostrarToast('JSON inválido o falta apiKey', 'error');
       }
     }
 
     function formatearFecha(d) { return d.toISOString().split('T')[0]; }
     window.cambiarSemana = function(dir) { semanaBase.setDate(semanaBase.getDate() + dir * 7); render(); }
     window.irHoy = function() { semanaBase = new Date(); render(); }
-    window.cerrarTodo = function() { cerrarConfig(); cerrarNino(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
+    window.cerrarTodo = function() { cerrarConfig(); cerrarNino(); cerrarFirebaseSetup(); document.getElementById('modalConfirmOverlay').classList.add('hidden'); }
 
     function render() {
       let inicioSem = new Date(semanaBase);
@@ -412,7 +474,7 @@
       guardarEnNube();
       cerrarNino();
       render();
-      mostrarToast('¡Reserva registrada con éxito en la nube de Firebase! 🦕', 'success');
+      mostrarToast('¡Reserva registrada con éxito en la nube! 🦕', 'success');
     }
 
     window.eliminarNino = function(key, idx) {
@@ -523,7 +585,7 @@
           let hora = document.getElementById(`gHora-${diaNum}-${i}`);
           let max = document.getElementById(`gMax-${diaNum}-${i}`);
           if (nom && hora && max) {
-            g.nombre = nom.value.trim() || 'Grupo';
+            g.nombre = nom.value.trim()요 || 'Grupo';
             g.hora = hora.value || '09:00';
             g.max = Math.max(1, parseInt(max.value) || 5);
           }
