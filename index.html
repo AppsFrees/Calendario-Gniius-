@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="es">
 <head>
@@ -525,4 +526,241 @@ $('saveGroups').onclick=async()=>{
  toast('Programación guardada.');
 };
 
-$('addDay').onclick
+$('addDay').onclick=()=>{
+ const d=$('newDay').value;
+
+ if(state.cfg.dias[d]){
+  toast('Ese día ya está configurado.',true);
+  return;
+ }
+
+ state.cfg.dias[d]=[
+  {id:Date.now(),nombre:`Grupo ${DAYS[d]}`,hora:'09:00',max:5}
+ ];
+
+ activeDay=d;
+ renderEditor();
+};
+
+$('configBtn').onclick=openGroups;
+
+$('prevWeek').onclick=()=>{
+ week.setDate(week.getDate()-7);
+ render();
+};
+
+$('nextWeek').onclick=()=>{
+ week.setDate(week.getDate()+7);
+ render();
+};
+
+$('todayBtn').onclick=()=>{
+ week=new Date();
+ render();
+};
+
+async function saveData(){
+ persistLocal();
+ render();
+
+ if(!db||!user||!deviceAuthorized)return;
+
+ try{
+  await setDoc(
+   doc(db,'centers','gniius','calendar','main'),
+   {
+    cfg:state.cfg,
+    citas:state.citas,
+    updatedAt:new Date().toISOString()
+   }
+  );
+ }catch(e){
+  console.error(e);
+  toast('No se pudo sincronizar. Tus datos siguen guardados localmente.',true);
+ }
+}
+
+function setSync(label,kind='amber'){
+ const b=$('syncBadge');
+ b.textContent=label;
+ b.className=`text-xs font-bold rounded-xl px-3 py-2 ${kind==='green'?'bg-green-100 text-green-800':kind==='red'?'bg-red-100 text-red-800':'bg-amber-100 text-amber-800'}`;
+}
+
+function showDevicePanel(show){
+ $('devicePanel').classList.toggle('hidden',!show);
+}
+
+$('copyUidBtn').onclick=async()=>{
+ try{
+  await navigator.clipboard.writeText(user?.uid||'');
+  toast('Identificador copiado.');
+ }catch(e){
+  toast('No se pudo copiar; selecciona el identificador y cópialo.',true);
+ }
+};
+
+async function connectFirebase(){
+ const raw=localStorage.getItem(CONFIG);
+
+ if(!raw){
+  setSync('● Solo en este dispositivo');
+  showDevicePanel(false);
+  $('cloudNotice').classList.remove('hidden');
+  render();
+  return;
+ }
+
+ try{
+  const firebaseConfig=JSON.parse(raw);
+
+  app=getApps().length?getApp():initializeApp(firebaseConfig);
+  auth=getAuth(app);
+  db=getFirestore(app);
+
+  onAuthStateChanged(auth,async current=>{
+   user=current;
+
+   if(unsubscribe){
+    unsubscribe();
+    unsubscribe=null;
+   }
+
+   deviceAuthorized=false;
+
+   if(!current){
+    setSync('● Preparando dispositivo','amber');
+
+    try{
+     await signInAnonymously(auth);
+    }catch(e){
+     console.error(e);
+     setSync('● Activa acceso anónimo','red');
+     $('cloudNotice').classList.remove('hidden');
+     toast('Activa Authentication > Acceso anónimo en Firebase.',true);
+    }
+
+    return;
+   }
+
+   $('deviceUid').textContent=current.uid;
+   showDevicePanel(true);
+   setSync('● Verificando dispositivo','amber');
+
+   try{
+    const memberRef=doc(db,'centers','gniius','members',current.uid);
+    const memberSnap=await getDoc(memberRef);
+
+    if(!memberSnap.exists()||memberSnap.data().active!==true){
+     $('deviceStatus').textContent='Este dispositivo todavía no está autorizado. Copia el identificador y agrégalo en Firebase Console como miembro activo del centro.';
+     setSync('● Falta autorización','red');
+     $('cloudNotice').classList.remove('hidden');
+     return;
+    }
+
+    deviceAuthorized=true;
+
+    $('deviceStatus').textContent='Dispositivo autorizado. La información compartida está disponible.';
+    $('cloudNotice').classList.add('hidden');
+
+    const ref=doc(db,'centers','gniius','calendar','main');
+    const snap=await getDoc(ref);
+
+    if(snap.exists()){
+     const data=snap.data();
+
+     if(data.cfg?.dias)state.cfg=data.cfg;
+     if(data.citas&&typeof data.citas==='object')state.citas=data.citas;
+
+     persistLocal();
+
+    }else if(memberSnap.data().role==='admin'){
+
+     await setDoc(ref,{
+      cfg:state.cfg,
+      citas:state.citas,
+      updatedAt:new Date().toISOString()
+     });
+
+    }else{
+
+     $('deviceStatus').textContent='Dispositivo autorizado, pero el calendario aún no ha sido creado por la administradora.';
+     setSync('● Esperando configuración','amber');
+     return;
+    }
+
+    unsubscribe=onSnapshot(ref,s=>{
+     if(s.exists()){
+      const data=s.data();
+
+      if(data.cfg?.dias)state.cfg=data.cfg;
+      if(data.citas&&typeof data.citas==='object')state.citas=data.citas;
+
+      persistLocal();
+      render();
+      setSync('● Nube sincronizada','green');
+     }
+    },err=>{
+     console.error(err);
+     setSync('● Error de sincronización','red');
+    });
+
+    setSync('● Nube sincronizada','green');
+    render();
+
+   }catch(e){
+    console.error(e);
+    deviceAuthorized=false;
+    setSync('● Revisa reglas de Firestore','red');
+
+    $('deviceStatus').textContent='No se pudo verificar el dispositivo. Revisa que las reglas de Firestore estén instaladas.';
+    toast('Firebase conectó, pero no se pudo verificar la autorización.',true);
+   }
+  });
+
+ }catch(e){
+  console.error(e);
+  setSync('● Error de configuración','red');
+  $('cloudNotice').classList.remove('hidden');
+  toast('No se pudo iniciar Firebase. Revisa la configuración.',true);
+ }
+}
+// CONFIGURACIÓN DEL BOTÓN FIREBASE
+$('firebaseBtn').onclick=()=>{
+  $('firebaseConfig').value =
+    localStorage.getItem(CONFIG) ||
+    JSON.stringify(DEFAULT_FIREBASE_CONFIG,null,2);
+
+  openModal('firebaseModal');
+};
+
+// GUARDAR CONFIGURACIÓN FIREBASE
+$('saveFirebase').onclick=()=>{
+  try{
+    const config=JSON.parse($('firebaseConfig').value);
+
+    if(!config.apiKey || !config.projectId || !config.appId){
+      throw new Error('Configuración incompleta');
+    }
+
+    localStorage.setItem(CONFIG,JSON.stringify(config));
+    toast('Configuración guardada. Conectando...');
+    location.reload();
+
+  }catch(e){
+    toast('Revisa la configuración de Firebase.',true);
+  }
+};
+
+// QUITAR CONFIGURACIÓN
+$('clearFirebase').onclick=()=>{
+  if(confirm('¿Quitar la configuración de Firebase?')){
+    localStorage.removeItem(CONFIG);
+    location.reload();
+  }
+};
+render();
+connectFirebase();
+</script>
+
+</body>
+</html>
