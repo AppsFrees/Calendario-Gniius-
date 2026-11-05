@@ -1,0 +1,10 @@
+{
+  "name": "GniiUS | Calendario de sesiones",
+  "short_name": "GniiUS",
+  "lang": "es-PE",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbfaff",
+  "theme_color": "#b8b8da"
+}
