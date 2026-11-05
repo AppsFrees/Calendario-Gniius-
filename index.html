@@ -32,7 +32,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   <div class="flex flex-wrap gap-2 items-center">
    <span id="syncBadge" class="text-xs font-bold rounded-xl px-3 py-2 bg-amber-100 text-amber-800">● Solo en este dispositivo</span>
-   <button id="firebaseBtn" class="px-3 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">Firebase</button>
+   <button id="toolsBtn" title="Ajustes y herramientas" aria-label="Abrir ajustes y herramientas" class="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 font-bold text-xl">🔨</button>
    <button id="financeBtn" class="px-3 py-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-sm">💰 Finanzas</button>
    <button id="configBtn" class="px-3 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">⚙️ Configurar días</button>
    <div class="flex items-center gap-1 bg-slate-50 rounded-xl p-1">
@@ -46,14 +46,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <main class="max-w-7xl mx-auto p-4 md:p-8">
 
- <section id="devicePanel" class="hidden max-w-2xl mx-auto bg-white border border-purple-100 rounded-3xl p-6 shadow-sm mb-6">
-  <h2 class="text-xl font-black text-purple-800 mb-2">Autorizar este dispositivo</h2>
-  <p class="text-sm text-slate-600 mb-3">GniiUS entra sin correo ni contraseña. Para proteger la información, la primera vez debes autorizar este dispositivo desde Firebase Console.</p>
-  <p class="text-xs font-bold text-slate-500 mb-1">Identificador técnico de este dispositivo</p>
-  <code id="deviceUid" class="block break-all rounded-xl bg-slate-50 border p-3 text-xs"></code>
-  <button id="copyUidBtn" class="mt-3 px-4 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">Copiar identificador</button>
-  <p id="deviceStatus" class="text-sm text-amber-800 mt-3">Esperando autorización del administrador.</p>
- </section>
+
 
  <div id="cloudNotice" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-6 text-sm text-amber-900">
   <b>Modo local:</b> los cambios se guardan en este navegador. Al conectar Firebase y autorizar este dispositivo, se compartirán con los demás dispositivos autorizados.
@@ -72,11 +65,20 @@ button:disabled{opacity:.5;cursor:not-allowed}
  </div>
 
  <div id="daysGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+<section class="mt-7 bg-white rounded-3xl border border-purple-100 p-5"><h2 class="text-lg font-black text-purple-800 mb-3">Resumen del centro</h2><div id="dashboard" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div></section>
 <section class="mt-8 bg-white border rounded-3xl p-5"><div class="flex justify-between"><h2 class="text-xl font-black text-emerald-800">Finanzas</h2><div><button id="addExpense" class="rounded-xl bg-rose-100 px-3 py-2 font-bold">+ Gasto</button> <button id="exportFinance" class="rounded-xl bg-emerald-100 px-3 py-2 font-bold">Exportar CSV</button></div></div><div id="financeSummary" class="grid sm:grid-cols-3 gap-3 mt-4"></div><div class="grid md:grid-cols-2 gap-4 mt-4"><div><b>Pagos recibidos</b><div id="paymentList" class="space-y-2"></div></div><div><b>Gastos</b><div id="expenseList" class="space-y-2"></div></div></div></section><section class="mt-6 bg-white border rounded-3xl p-5"><h2 class="font-black text-purple-800">Paquetes de sesiones</h2><div id="packageList"></div></section>
 </main>
 
 <div id="backdrop" class="hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm"></div>
 
+<section id="toolsModal" class="hidden modal fixed z-50 inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-2xl bg-white rounded-3xl p-5 md:p-7 shadow-2xl"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-black text-purple-800">Ajustes y herramientas</h2><button data-close class="text-xl font-bold">✕</button></div><div class="mb-5 flex flex-wrap gap-2"><button id="firebaseBtn" class="rounded-xl bg-purple-100 px-4 py-2 font-bold text-purple-800">🔥 Firebase</button><button id="exportDatabase" class="rounded-xl bg-emerald-100 px-4 py-2 font-bold text-emerald-800">Exportar base de datos</button><button id="importDatabase" class="rounded-xl bg-amber-100 px-4 py-2 font-bold text-amber-800">Importar base de datos</button><input id="databaseFile" type="file" accept="application/json,.json" class="hidden"></div><p class="text-xs text-slate-500 mb-4">La exportación guarda una copia JSON de la configuración, citas, usuarias, pagos y gastos. Al importar, se reemplazarán los datos actuales en este dispositivo y en Firebase.</p> <section id="devicePanel" class="hidden max-w-2xl mx-auto bg-white border border-purple-100 rounded-3xl p-6 shadow-sm mb-6">
+  <h2 class="text-xl font-black text-purple-800 mb-2">Autorizar este dispositivo</h2>
+  <p class="text-sm text-slate-600 mb-3">GniiUS entra sin correo ni contraseña. Para proteger la información, la primera vez debes autorizar este dispositivo desde Firebase Console.</p>
+  <p class="text-xs font-bold text-slate-500 mb-1">Identificador técnico de este dispositivo</p>
+  <code id="deviceUid" class="block break-all rounded-xl bg-slate-50 border p-3 text-xs"></code>
+  <button id="copyUidBtn" class="mt-3 px-4 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">Copiar identificador</button>
+  <p id="deviceStatus" class="text-sm text-amber-800 mt-3">Esperando autorización del administrador.</p>
+ </section></section>
 <section id="firebaseModal" class="hidden modal fixed z-50 inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-xl bg-white rounded-3xl p-6 shadow-2xl">
  <div class="flex justify-between items-center mb-3">
   <h2 class="text-xl font-black text-purple-800">Conectar Firebase</h2>
@@ -102,6 +104,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
  <p id="bookingTitle" class="text-sm text-slate-500 mb-4"></p>
  <label class="block text-sm font-bold mb-1" for="childName">Nombre del niño o niña *</label>
  <input id="childName" class="w-full border rounded-xl p-3 mb-3" maxlength="100" placeholder="Nombre y apellido">
+ <label class="block text-sm font-bold mb-1" for="packageType">Pago o paquete</label>
+ <select id="packageType" class="w-full border rounded-xl p-3 mb-3"><option value="single">Sesión individual</option><option value="basic">Paquete básico · 4 sesiones</option><option value="complete">Paquete completo · 8 sesiones</option><option value="use_package">Usar paquete ya pagado</option></select>
+ <label class="block text-sm font-bold mb-1" for="paymentAmount">Monto recibido (S/)</label>
+ <input id="paymentAmount" type="number" min="0" step="0.01" class="w-full border rounded-xl p-3 mb-3" placeholder="0.00">
  <label class="block text-sm font-bold mb-1" for="parentPhone">Teléfono del responsable</label>
  <input id="parentPhone" type="tel" class="w-full border rounded-xl p-3 mb-4" maxlength="30" placeholder="WhatsApp">
  <div class="flex justify-end gap-2">
@@ -116,7 +122,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <button data-close class="text-xl font-bold">✕</button>
  </div>
  <div id="dayTabs" class="flex gap-2 overflow-x-auto pb-3"></div>
- <div id="groupsEditor" class="space-y-3 mb-5"></div>
+ <div id="groupsEditor" class="space-y-3 mb-5"></div><div class="rounded-2xl bg-emerald-50 p-4 mb-5"><h3 class="font-black text-emerald-900 mb-3">Costos configurados (S/)</h3><div class="grid sm:grid-cols-3 gap-3"><label class="text-xs font-bold">Sesión individual<input id="costSingle" type="number" min="0" step="0.01" class="block w-full border rounded-lg p-2 mt-1"></label><label class="text-xs font-bold">Paquete básico · 4 sesiones<input id="costBasic" type="number" min="0" step="0.01" class="block w-full border rounded-lg p-2 mt-1"></label><label class="text-xs font-bold">Paquete completo · 8 sesiones<input id="costComplete" type="number" min="0" step="0.01" class="block w-full border rounded-lg p-2 mt-1"></label></div><p class="text-xs text-emerald-800 mt-2">Los costos se usan para calcular el saldo pendiente.</p></div>
  <div class="border-t pt-4 flex flex-wrap justify-between gap-3">
   <div class="flex gap-2">
    <select id="newDay" class="border rounded-xl p-2 text-sm">
@@ -177,6 +183,7 @@ const defaults={dias:{
 }};
 
 let state=loadLocal();
+state.cfg.precios??={individual:0,basic:0,complete:0};
 let week=new Date();
 let selectedKey=null;
 let activeDay='5';
@@ -192,7 +199,7 @@ function clone(v){
 function loadLocal(){
  try{
   const x=JSON.parse(localStorage.getItem(STORAGE));
-  if(x?.cfg?.dias){x.clientes??={};x.pagos??=[];x.gastos??=[];return x;}
+  if(x?.cfg?.dias){x.clientes??={};x.pagos??=[];x.gastos??=[];x.cfg.precios??={individual:0,basic:0,complete:0};return x;}
  }catch(e){}
  return {cfg:clone(defaults),citas:{},clientes:{},pagos:[],gastos:[]};
 }
@@ -216,7 +223,7 @@ function openModal(id){
 
 function closeModals(){
  $('backdrop').classList.add('hidden');
- ['firebaseModal','bookingModal','groupsModal'].forEach(id=>$(id).classList.add('hidden'));
+ ['firebaseModal','bookingModal','groupsModal','toolsModal'].forEach(id=>$(id).classList.add('hidden'));
 }
 
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModals));
@@ -335,13 +342,14 @@ function render(){
     phone.textContent=b.tel||'Sin teléfono';
     info.append(phone);
 
+    const reminder=document.createElement('button');reminder.className='font-bold px-1 text-green-700';reminder.textContent='Recordar';reminder.title='Abrir recordatorio por WhatsApp';reminder.onclick=()=>sendReminder(key,b);
     const del=document.createElement('button');
     del.className='text-red-600 font-black px-2';
     del.textContent='✕';
     del.title='Eliminar reserva';
     del.addEventListener('click',()=>removeBooking(key,idx));
 
-    const att=document.createElement('button');att.className='font-bold px-2 text-purple-700';att.textContent=b.asistio?'✓':'Asistió';att.onclick=()=>markAttendance(key,idx);row.append(info,att,del);
+    const att=document.createElement('button');att.className='font-bold px-2 text-purple-700';att.textContent=b.asistio?'✓':'Asistió';att.onclick=()=>markAttendance(key,idx);row.append(info,att,reminder,del);
     bookingList.append(row);
    });
 
@@ -370,11 +378,12 @@ function openBooking(key,title){
  selectedKey=key;
  $('bookingTitle').textContent=title;
  $('childName').value='';
- $('parentPhone').value='';
+ $('parentPhone').value=''; $('packageType').value='single'; $('paymentAmount').value=state.cfg.precios.individual||'';
  openModal('bookingModal');
  $('childName').focus();
 }
 
+$('packageType').addEventListener('change',()=>{const type=$('packageType').value;const key={single:'individual',basic:'basic',complete:'complete'}[type];$('paymentAmount').value=key?(state.cfg.precios[key]||''):'';});
 $('saveBooking').addEventListener('click',async()=>{
  const nombre=$('childName').value.trim();
  const tel=$('parentPhone').value.trim(); const plan=$('packageType').value,amount=Number($('paymentAmount').value)||0;
@@ -384,6 +393,7 @@ $('saveBooking').addEventListener('click',async()=>{
   return;
  }
 
+ if(plan==='use_package'){const id=nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(),c=state.clientes[id];if(!c||!c.total||c.asistidas>=c.total){toast('No hay sesiones disponibles en un paquete para esta usuaria.',true);return;}}
  const [date,id]=selectedKey.split('_');
  const day=String(new Date(date+'T00:00:00').getDay());
  const group=state.cfg.dias[day]?.find(g=>String(g.id)===id);
@@ -400,11 +410,11 @@ $('saveBooking').addEventListener('click',async()=>{
   return;
  }
 
- const cid=nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); const totals={single:1,basic:4,complete:8},labels={single:'Sesión individual',basic:'Paquete básico (4)',complete:'Paquete completo (8)'}; const client=state.clientes[cid]||{nombre,asistidas:0,total:0,paquete:''}; if(plan!=='single'){client.total=totals[plan];client.paquete=labels[plan];} state.clientes[cid]=client; list.push({nombre,tel:tel||'Sin teléfono',clientId:cid,asistio:false}); if(amount>0)state.pagos.push({fecha:new Date().toISOString(),nombre,concepto:labels[plan],monto:amount});
+ const cid=nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); const totals={single:1,basic:4,complete:8},labels={single:'Sesión individual',basic:'Paquete básico (4)',complete:'Paquete completo (8)'}; const client=state.clientes[cid]||{nombre,asistidas:0,total:0,paquete:'',pagado:0,costo:0}; client.nombre=nombre;if(tel)client.telefono=tel;if(plan!=='use_package'){client.total=totals[plan];client.paquete=labels[plan];client.tipo=plan;client.asistidas=0;client.pagado=amount;client.costo=state.cfg.precios[plan==='single'?'individual':plan]||0;}else{client.pagado=(+client.pagado||0)+amount;}state.clientes[cid]=client;list.push({nombre,tel:tel||client.telefono||'Sin teléfono',clientId:cid,asistio:false});if(amount>0)state.pagos.push({fecha:new Date().toISOString(),nombre,clientId:cid,concepto:client.paquete||'Abono',monto:amount});let autoAdded=0;if(plan==='basic'||plan==='complete'){const match=String(group.nombre).normalize('NFD').replace(/[\u0300-\u036f]/g,'').match(/^grupo\s*(\d+)\b/i),series=match?match[1]:null,baseDay=String(new Date(date+'T00:00:00').getDay());for(const [oldKey,oldList] of Object.entries(state.citas)){if(oldKey!==selectedKey)state.citas[oldKey]=oldList.filter(b=>!(b.clientId===cid&&b.packageAuto));if(state.citas[oldKey]&&!state.citas[oldKey].length)delete state.citas[oldKey];}for(let offset=1;offset<=90&&autoAdded<totals[plan]-1;offset++){const d=new Date(date+'T00:00:00');d.setDate(d.getDate()+offset);const weekday=String(d.getDay()),dayGroups=state.cfg.dias[weekday]||[],candidate=series?dayGroups.find(g=>{const m=String(g.nombre).normalize('NFD').replace(/[\u0300-\u036f]/g,'').match(/^grupo\s*(\d+)\b/i);return m&&m[1]===series;}):(weekday===baseDay?dayGroups.find(g=>String(g.id)===String(group.id)):null);if(!candidate)continue;const futureKey=dateKey(d)+'_'+candidate.id,futureList=state.citas[futureKey]||[];if(futureList.some(b=>b.clientId===cid))continue;if(futureList.length>=Number(candidate.max))continue;futureList.push({nombre,tel:tel||client.telefono||'Sin teléfono',clientId:cid,asistio:false,packageAuto:true});state.citas[futureKey]=futureList;autoAdded++;}}
  await saveData();
  closeModals();
  render();
- toast('Reserva guardada correctamente.');
+ toast(plan==='basic'||plan==='complete'?'Reserva guardada y '+autoAdded+' sesiones futuras del paquete agendadas.':'Reserva guardada correctamente.');
 });
 
 async function removeBooking(key,index){
@@ -426,6 +436,7 @@ function openGroups(){
   activeDay=Object.keys(state.cfg.dias)[0]||'5';
  }
  renderEditor();
+ $('costSingle').value=state.cfg.precios.individual||''; $('costBasic').value=state.cfg.precios.basic||''; $('costComplete').value=state.cfg.precios.complete||'';
  openModal('groupsModal');
 }
 
@@ -511,6 +522,7 @@ function renderEditor(){
 }
 
 $('saveGroups').onclick=async()=>{
+ state.cfg.precios={individual:Number($('costSingle').value)||0,basic:Number($('costBasic').value)||0,complete:Number($('costComplete').value)||0}; for(const c of Object.values(state.clientes)){if(c.tipo)c.costo=state.cfg.precios[c.tipo==='single'?'individual':c.tipo]||0;}
  const panel=$('groupsEditor');
  const rows=[...panel.querySelectorAll(':scope > div')];
  const groups=state.cfg.dias[activeDay]||[];
@@ -673,7 +685,7 @@ async function connectFirebase(){
     if(snap.exists()){
      const data=snap.data();
 
-     if(data.cfg?.dias)state.cfg=data.cfg;
+     if(data.cfg?.dias)state.cfg=data.cfg; state.cfg.precios??={individual:0,basic:0,complete:0};
      if(data.citas&&typeof data.citas==='object')state.citas=data.citas; if(data.clientes&&typeof data.clientes==='object')state.clientes=data.clientes;if(Array.isArray(data.pagos))state.pagos=data.pagos;if(Array.isArray(data.gastos))state.gastos=data.gastos;
 
      persistLocal();fin();
@@ -698,8 +710,8 @@ async function connectFirebase(){
      if(s.exists()){
       const data=s.data();
 
-      if(data.cfg?.dias)state.cfg=data.cfg;
-      if(data.citas&&typeof data.citas==='object')state.citas=data.citas;
+      if(data.cfg?.dias)state.cfg=data.cfg; state.cfg.precios??={individual:0,basic:0,complete:0};
+      if(data.citas&&typeof data.citas==='object')state.citas=data.citas; if(data.clientes&&typeof data.clientes==='object')state.clientes=data.clientes;if(Array.isArray(data.pagos))state.pagos=data.pagos;if(Array.isArray(data.gastos))state.gastos=data.gastos;
 
       persistLocal();
       render();fin();
@@ -731,13 +743,8 @@ async function connectFirebase(){
  }
 }
 // CONFIGURACIÓN DEL BOTÓN FIREBASE
-$('firebaseBtn').onclick=()=>{
-  $('firebaseConfig').value =
-    localStorage.getItem(CONFIG) ||
-    JSON.stringify(DEFAULT_FIREBASE_CONFIG,null,2);
-
-  openModal('firebaseModal');
-};
+$('toolsBtn').onclick=()=>openModal('toolsModal');
+$('firebaseBtn').onclick=()=>{ $('toolsModal').classList.add('hidden'); $('backdrop').classList.add('hidden'); $('firebaseConfig').value=localStorage.getItem(CONFIG)||JSON.stringify(DEFAULT_FIREBASE_CONFIG,null,2); openModal('firebaseModal'); };
 
 // GUARDAR CONFIGURACIÓN FIREBASE
 $('saveFirebase').onclick=()=>{
@@ -764,8 +771,10 @@ $('clearFirebase').onclick=()=>{
     location.reload();
   }
 };
-async function markAttendance(key,index){const b=state.citas[key]?.[index];if(!b||b.asistio)return;b.asistio=true;const c=state.clientes[b.clientId];if(c)c.asistidas=(c.asistidas||0)+1;await saveData();render();toast('Asistencia registrada.')}
-function fin(){const income=state.pagos.reduce((a,x)=>a+(+x.monto||0),0),expenses=state.gastos.reduce((a,x)=>a+(+x.monto||0),0),money=n=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(n);$('financeSummary').innerHTML='<div class="p-3 bg-green-50 rounded-xl">Ingresos <b>'+money(income)+'</b></div><div class="p-3 bg-rose-50 rounded-xl">Gastos <b>'+money(expenses)+'</b></div><div class="p-3 bg-purple-50 rounded-xl">Balance <b>'+money(income-expenses)+'</b></div>';const rows=a=>a.slice().reverse().map(x=>'<div class="border rounded-xl p-2 text-sm">'+escapeHTML(x.nombre||x.concepto)+' · '+money(x.monto)+'</div>').join('')||'<p class="text-sm text-slate-400">Sin registros</p>';$('paymentList').innerHTML=rows(state.pagos);$('expenseList').innerHTML=rows(state.gastos);$('packageList').innerHTML=Object.values(state.clientes).filter(c=>c.total>1).map(c=>'<p class="border rounded-xl p-2"><b>'+escapeHTML(c.nombre)+'</b> · '+escapeHTML(c.paquete)+' · '+(c.asistidas||0)+'/'+c.total+' sesiones</p>').join('')||'<p class="text-sm text-slate-400">Sin paquetes registrados.</p>'}
+async function markAttendance(key,index){const b=state.citas[key]?.[index];if(!b||b.asistio)return;b.asistio=true;const c=state.clientes[b.clientId];if(c&&c.asistidas>=c.total){toast('El paquete ya no tiene sesiones disponibles.',true);return;}if(c)c.asistidas=(c.asistidas||0)+1;await saveData();render();toast('Asistencia registrada.')}
+function sendReminder(key,b){if(!b.tel||b.tel==='Sin teléfono'){toast('Esta reserva no tiene teléfono de WhatsApp.',true);return;}let phone=String(b.tel).replace(/\D/g,'');if(phone.length===9&&phone.startsWith('9'))phone='51'+phone;const [date,gid]=key.split('_'),d=new Date(date+'T00:00:00'),day=String(d.getDay()),group=state.cfg.dias[day]?.find(g=>String(g.id)===gid),when=d.toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long'})+(group?' a las '+group.hora:''),msg='Hola, te recordamos la sesión de '+b.nombre+' el '+when+'. ¡Te esperamos!';window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank','noopener');}
+function fin(){const income=state.pagos.reduce((a,x)=>a+(+x.monto||0),0),expenses=state.gastos.reduce((a,x)=>a+(+x.monto||0),0),money=n=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(n),clients=Object.values(state.clientes),debt=clients.reduce((a,c)=>a+Math.max(0,(+c.costo||0)-(+c.pagado||0)),0),today=new Date().toISOString().slice(0,10),upcoming=Object.entries(state.citas).reduce((a,[k,v])=>a+v.filter(b=>!b.asistio&&k.slice(0,10)>=today).length,0),attended=clients.reduce((a,c)=>a+(+c.asistidas||0),0);$('dashboard').innerHTML='<div class="rounded-xl bg-purple-50 p-3"><small>Usuarias</small><b class="block text-xl">'+clients.length+'</b></div><div class="rounded-xl bg-blue-50 p-3"><small>Próximas sesiones</small><b class="block text-xl">'+upcoming+'</b></div><div class="rounded-xl bg-green-50 p-3"><small>Asistencias</small><b class="block text-xl">'+attended+'</b></div><div class="rounded-xl bg-rose-50 p-3"><small>Por cobrar</small><b class="block text-xl">'+money(debt)+'</b></div>';$('financeSummary').innerHTML='<div class="p-3 bg-green-50 rounded-xl">Ingresos <b>'+money(income)+'</b></div><div class="p-3 bg-rose-50 rounded-xl">Gastos <b>'+money(expenses)+'</b></div><div class="p-3 bg-purple-50 rounded-xl">Balance <b>'+money(income-expenses)+'</b></div>';const groups={};for(const x of state.pagos){const k=x.clientId||x.nombre;groups[k]??={nombre:x.nombre,pagos:[]};groups[k].pagos.push(x);} $('paymentList').innerHTML=Object.entries(groups).map(([id,g])=>{const total=g.pagos.reduce((a,x)=>a+(+x.monto||0),0);return '<details class="border rounded-xl p-3"><summary class="cursor-pointer flex justify-between"><span><b>'+escapeHTML(g.nombre)+'</b><small class="block text-slate-500">'+g.pagos.length+' pago(s)</small></span><b>'+money(total)+'</b></summary><div class="mt-2 space-y-2">'+g.pagos.map(x=>'<div class="flex justify-between text-sm border-t pt-2"><span>'+escapeHTML(x.concepto||'Pago')+' · '+new Date(x.fecha).toLocaleDateString('es-PE')+'</span><b>'+money(x.monto)+'</b></div>').join('')+'</div></details>'}).join('')||'<p class="text-sm text-slate-400">Sin registros.</p>'; $('expenseList').innerHTML=state.gastos.slice().reverse().map(x=>'<div class="border rounded-xl p-2 text-sm flex justify-between"><span>'+escapeHTML(x.concepto)+'</span><b>'+money(x.monto)+'</b></div>').join('')||'<p class="text-sm text-slate-400">Sin registros.</p>'; $('packageList').innerHTML=clients.map(c=>{const owed=Math.max(0,(+c.costo||0)-(+c.pagado||0)),id=Object.keys(state.clientes).find(k=>state.clientes[k]===c)||'';return '<div class="border rounded-xl p-3 flex flex-wrap justify-between items-center gap-2"><div><b>'+escapeHTML(c.nombre)+'</b><small class="block text-slate-500">'+escapeHTML(c.paquete||'Sesión individual')+' · '+(c.asistidas||0)+'/'+(c.total||1)+' sesiones asistidas · Pagó '+money(c.pagado||0)+' de '+(c.costo?money(c.costo):'costo sin configurar')+' · Debe '+money(owed)+'</small></div><button class="text-emerald-800 bg-emerald-50 rounded-lg px-3 py-2 font-bold text-xs" data-client="'+escapeHTML(id)+'">Registrar abono</button></div>'}).join('')||'<p class="text-sm text-slate-400">Aún no hay usuarias registradas.</p>';document.querySelectorAll('[data-client]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.client,c=state.clientes[id],amount=Number(prompt('Monto del abono para '+c.nombre));if(!Number.isFinite(amount)||amount<=0)return;c.pagado=(+c.pagado||0)+amount;state.pagos.push({fecha:new Date().toISOString(),nombre:c.nombre,clientId:id,concepto:'Abono',monto:amount});await saveData();fin();});}
+$('exportDatabase').onclick=()=>{const backup={format:'gniius-backup-v1',exportedAt:new Date().toISOString(),data:{cfg:state.cfg,citas:state.citas,clientes:state.clientes,pagos:state.pagos,gastos:state.gastos}};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));a.download='gniius-respaldo-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);};$('importDatabase').onclick=()=>$('databaseFile').click();$('databaseFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const parsed=JSON.parse(await f.text()),d=parsed.data||parsed;if(!d.cfg?.dias||typeof d.citas!=='object'||!d.citas)throw new Error('Formato inválido');if(!confirm('La importación reemplazará las citas, usuarias, pagos, gastos y configuración actuales. ¿Continuar?'))return;state={cfg:d.cfg,citas:d.citas,clientes:d.clientes||{},pagos:Array.isArray(d.pagos)?d.pagos:[],gastos:Array.isArray(d.gastos)?d.gastos:[]};state.cfg.precios??={individual:0,basic:0,complete:0};persistLocal();render();fin();await saveData();toast('Base de datos importada.');}catch(err){console.error(err);toast('No se pudo importar el archivo JSON.',true);}finally{e.target.value='';}};
 $('financeBtn').onclick=()=>{$('financeSummary').scrollIntoView({behavior:'smooth'});fin()};$('addExpense').onclick=()=>{const concept=prompt('Concepto del gasto'),amount=Number(prompt('Monto en soles'));if(concept&&amount>0){state.gastos.push({fecha:new Date().toISOString(),concepto:concept,monto:amount});saveData().then(fin)}};$('exportFinance').onclick=()=>{const rows=[['Tipo','Fecha','Concepto','Monto'],...state.pagos.map(x=>['Ingreso',x.fecha,x.nombre+' '+x.concepto,x.monto]),...state.gastos.map(x=>['Gasto',x.fecha,x.concepto,x.monto])],csv=rows.map(r=>r.join(';')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='gniius-finanzas.csv';a.click()};
 fin();
 render();
