@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#b8b8da">
+<link rel="manifest" href="manifest.webmanifest">
 <title>GniiUS | Calendario de sesiones</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
@@ -32,6 +33,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="flex flex-wrap gap-2 items-center">
    <span id="syncBadge" class="text-xs font-bold rounded-xl px-3 py-2 bg-amber-100 text-amber-800">● Solo en este dispositivo</span>
    <button id="firebaseBtn" class="px-3 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">Firebase</button>
+   <button id="financeBtn" class="px-3 py-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-sm">💰 Finanzas</button>
    <button id="configBtn" class="px-3 py-2 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm">⚙️ Configurar días</button>
    <div class="flex items-center gap-1 bg-slate-50 rounded-xl p-1">
     <button id="prevWeek" class="w-9 h-9 rounded-lg bg-[#b8b8da] text-white font-bold">←</button>
@@ -70,6 +72,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
  </div>
 
  <div id="daysGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+<section class="mt-8 bg-white border rounded-3xl p-5"><div class="flex justify-between"><h2 class="text-xl font-black text-emerald-800">Finanzas</h2><div><button id="addExpense" class="rounded-xl bg-rose-100 px-3 py-2 font-bold">+ Gasto</button> <button id="exportFinance" class="rounded-xl bg-emerald-100 px-3 py-2 font-bold">Exportar CSV</button></div></div><div id="financeSummary" class="grid sm:grid-cols-3 gap-3 mt-4"></div><div class="grid md:grid-cols-2 gap-4 mt-4"><div><b>Pagos recibidos</b><div id="paymentList" class="space-y-2"></div></div><div><b>Gastos</b><div id="expenseList" class="space-y-2"></div></div></div></section><section class="mt-6 bg-white border rounded-3xl p-5"><h2 class="font-black text-purple-800">Paquetes de sesiones</h2><div id="packageList"></div></section>
 </main>
 
 <div id="backdrop" class="hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm"></div>
@@ -189,9 +192,9 @@ function clone(v){
 function loadLocal(){
  try{
   const x=JSON.parse(localStorage.getItem(STORAGE));
-  if(x?.cfg?.dias)return x;
+  if(x?.cfg?.dias){x.clientes??={};x.pagos??=[];x.gastos??=[];return x;}
  }catch(e){}
- return {cfg:clone(defaults),citas:{}};
+ return {cfg:clone(defaults),citas:{},clientes:{},pagos:[],gastos:[]};
 }
 
 function persistLocal(){
@@ -338,7 +341,7 @@ function render(){
     del.title='Eliminar reserva';
     del.addEventListener('click',()=>removeBooking(key,idx));
 
-    row.append(info,del);
+    const att=document.createElement('button');att.className='font-bold px-2 text-purple-700';att.textContent=b.asistio?'✓':'Asistió';att.onclick=()=>markAttendance(key,idx);row.append(info,att,del);
     bookingList.append(row);
    });
 
@@ -374,7 +377,7 @@ function openBooking(key,title){
 
 $('saveBooking').addEventListener('click',async()=>{
  const nombre=$('childName').value.trim();
- const tel=$('parentPhone').value.trim();
+ const tel=$('parentPhone').value.trim(); const plan=$('packageType').value,amount=Number($('paymentAmount').value)||0;
 
  if(!nombre){
   toast('Escribe el nombre del niño o niña.',true);
@@ -397,7 +400,7 @@ $('saveBooking').addEventListener('click',async()=>{
   return;
  }
 
- list.push({nombre,tel:tel||'Sin teléfono'});
+ const cid=nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); const totals={single:1,basic:4,complete:8},labels={single:'Sesión individual',basic:'Paquete básico (4)',complete:'Paquete completo (8)'}; const client=state.clientes[cid]||{nombre,asistidas:0,total:0,paquete:''}; if(plan!=='single'){client.total=totals[plan];client.paquete=labels[plan];} state.clientes[cid]=client; list.push({nombre,tel:tel||'Sin teléfono',clientId:cid,asistio:false}); if(amount>0)state.pagos.push({fecha:new Date().toISOString(),nombre,concepto:labels[plan],monto:amount});
  await saveData();
  closeModals();
  render();
@@ -562,6 +565,7 @@ $('todayBtn').onclick=()=>{
 async function saveData(){
  persistLocal();
  render();
+ fin();
 
  if(!db||!user||!deviceAuthorized)return;
 
@@ -571,6 +575,7 @@ async function saveData(){
    {
     cfg:state.cfg,
     citas:state.citas,
+    clientes:state.clientes,pagos:state.pagos,gastos:state.gastos,
     updatedAt:new Date().toISOString()
    }
   );
@@ -669,15 +674,16 @@ async function connectFirebase(){
      const data=snap.data();
 
      if(data.cfg?.dias)state.cfg=data.cfg;
-     if(data.citas&&typeof data.citas==='object')state.citas=data.citas;
+     if(data.citas&&typeof data.citas==='object')state.citas=data.citas; if(data.clientes&&typeof data.clientes==='object')state.clientes=data.clientes;if(Array.isArray(data.pagos))state.pagos=data.pagos;if(Array.isArray(data.gastos))state.gastos=data.gastos;
 
-     persistLocal();
+     persistLocal();fin();
 
     }else if(memberSnap.data().role==='admin'){
 
      await setDoc(ref,{
       cfg:state.cfg,
       citas:state.citas,
+      clientes:state.clientes,pagos:state.pagos,gastos:state.gastos,
       updatedAt:new Date().toISOString()
      });
 
@@ -696,7 +702,7 @@ async function connectFirebase(){
       if(data.citas&&typeof data.citas==='object')state.citas=data.citas;
 
       persistLocal();
-      render();
+      render();fin();
       setSync('● Nube sincronizada','green');
      }
     },err=>{
@@ -758,9 +764,14 @@ $('clearFirebase').onclick=()=>{
     location.reload();
   }
 };
+async function markAttendance(key,index){const b=state.citas[key]?.[index];if(!b||b.asistio)return;b.asistio=true;const c=state.clientes[b.clientId];if(c)c.asistidas=(c.asistidas||0)+1;await saveData();render();toast('Asistencia registrada.')}
+function fin(){const income=state.pagos.reduce((a,x)=>a+(+x.monto||0),0),expenses=state.gastos.reduce((a,x)=>a+(+x.monto||0),0),money=n=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(n);$('financeSummary').innerHTML='<div class="p-3 bg-green-50 rounded-xl">Ingresos <b>'+money(income)+'</b></div><div class="p-3 bg-rose-50 rounded-xl">Gastos <b>'+money(expenses)+'</b></div><div class="p-3 bg-purple-50 rounded-xl">Balance <b>'+money(income-expenses)+'</b></div>';const rows=a=>a.slice().reverse().map(x=>'<div class="border rounded-xl p-2 text-sm">'+escapeHTML(x.nombre||x.concepto)+' · '+money(x.monto)+'</div>').join('')||'<p class="text-sm text-slate-400">Sin registros</p>';$('paymentList').innerHTML=rows(state.pagos);$('expenseList').innerHTML=rows(state.gastos);$('packageList').innerHTML=Object.values(state.clientes).filter(c=>c.total>1).map(c=>'<p class="border rounded-xl p-2"><b>'+escapeHTML(c.nombre)+'</b> · '+escapeHTML(c.paquete)+' · '+(c.asistidas||0)+'/'+c.total+' sesiones</p>').join('')||'<p class="text-sm text-slate-400">Sin paquetes registrados.</p>'}
+$('financeBtn').onclick=()=>{$('financeSummary').scrollIntoView({behavior:'smooth'});fin()};$('addExpense').onclick=()=>{const concept=prompt('Concepto del gasto'),amount=Number(prompt('Monto en soles'));if(concept&&amount>0){state.gastos.push({fecha:new Date().toISOString(),concepto:concept,monto:amount});saveData().then(fin)}};$('exportFinance').onclick=()=>{const rows=[['Tipo','Fecha','Concepto','Monto'],...state.pagos.map(x=>['Ingreso',x.fecha,x.nombre+' '+x.concepto,x.monto]),...state.gastos.map(x=>['Gasto',x.fecha,x.concepto,x.monto])],csv=rows.map(r=>r.join(';')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='gniius-finanzas.csv';a.click()};
+fin();
 render();
 connectFirebase();
 </script>
 
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));</script>
 </body>
 </html>
