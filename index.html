@@ -13,6 +13,9 @@
 body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:#4a4a5a}
 button:disabled{opacity:.5;cursor:not-allowed}
 .modal{max-height:90vh;overflow:auto}
+details.group-details>summary{list-style:none}
+details.group-details>summary::-webkit-details-marker{display:none}
+details.group-details[open] .group-chevron{transform:rotate(90deg)}
 </style>
 </head>
 
@@ -188,6 +191,7 @@ let state=loadLocal();
 state.cfg.precios??={individual:0,basic:0,complete:0};
 let week=new Date();
 let selectedKey=null;
+let expandedGroups=new Set();
 let activeDay='5';
 let app=null,auth=null,db=null,unsubscribe=null,user=null;
 let deviceAuthorized=false;
@@ -311,16 +315,13 @@ function render(){
    const statusClass=full?'bg-red-100 text-red-800':last?'bg-amber-100 text-amber-800':'bg-green-100 text-green-800';
 
    box.innerHTML=`
-    <div class="flex justify-between items-start gap-2">
-     <b class="${groupColorClass(g.nombre)} text-base md:text-lg font-extrabold">${escapeHTML(g.nombre)}</b>
-     <span class="text-[10px] font-black px-2 py-1 rounded-full ${statusClass}">${status}</span>
-    </div>
-    <p class="text-base font-semibold ${groupColorClass(g.nombre)} mt-1">⏰ ${escapeHTML(g.hora)} · Máx. ${g.max}</p>
-    <div class="booking-list mt-2 space-y-2"></div>
-    <button class="reserve mt-3 w-full rounded-xl py-2.5 text-sm font-black ${full?'bg-slate-100 text-slate-400':'bg-[#b8b8da] text-white'}" ${full?'disabled':''}>
-     ${full?'Cupo completo':'+ Reservar cupo'}
-    </button>
+    <details class="group-details" ${expandedGroups.has(key)?'open':''}><summary class="cursor-pointer">
+     <div class="flex justify-between items-center gap-2"><span class="flex items-center gap-2"><span class="group-chevron inline-block transition-transform">▸</span><b class="${groupColorClass(g.nombre)} text-base md:text-lg font-extrabold">${escapeHTML(g.nombre)}</b></span><span class="text-[10px] font-black px-2 py-1 rounded-full ${statusClass}">${status}</span></div>
+     <p class="text-base font-semibold ${groupColorClass(g.nombre)} mt-1 ml-6">⏰ ${escapeHTML(g.hora)} · Máx. ${g.max}</p>
+    </summary><div class="group-content pt-2"><div class="booking-list space-y-2"></div>
+    <button class="reserve mt-3 w-full rounded-xl py-2.5 text-sm font-black ${full?'bg-slate-100 text-slate-400':'bg-[#b8b8da] text-white'}" ${full?'disabled':''}>${full?'Cupo completo':'+ Reservar cupo'}</button></div></details>
    `;
+   const accordion=box.querySelector('.group-details');accordion.addEventListener('toggle',()=>{if(accordion.open)expandedGroups.add(key);else expandedGroups.delete(key);});
 
    const bookingList=box.querySelector('.booking-list');
 
@@ -342,10 +343,6 @@ function render(){
     strong.textContent=b.nombre;
     info.append(strong);
 
-    const phone=document.createElement('span');
-    phone.className='block text-slate-400';
-    phone.textContent=b.tel||'Sin teléfono';
-    info.append(phone);
 
     const reminder=document.createElement('button');reminder.className='font-bold px-1 text-green-700';reminder.textContent='Recordar';reminder.title='Abrir recordatorio por WhatsApp';reminder.onclick=()=>sendReminder(key,b);
     const move=document.createElement('button');move.className='font-bold px-1 text-blue-700';move.textContent='Cambiar horario';move.disabled=!!b.asistio;move.onclick=()=>openMove(key,idx);
